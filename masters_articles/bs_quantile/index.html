@@ -1,0 +1,209 @@
+<!DOCTYPE HTML>
+<!--
+	Read Only by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Fred Philippy's Website</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../../assets/css/main.css" />
+
+		<script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"> </script>
+		<!-- Include the Prism CSS file -->
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css" rel="stylesheet" />
+	</head>
+
+	<body class="is-preload">
+
+		<!-- Header -->
+		<section id="header">
+			<header>
+				<span class="image avatar"><img src="../../images/avatar.jpg" alt="" /></span>
+				<h1  id="logo"><a href="../../index.html">Fred Philippy</a></h1>
+				<p>PhD candidate at the <a href="https://www.uni.lu/snt-en/">Interdisciplinary Centre for Security, Reliability and Trust</a> (SnT), <a href="https://www.uni.lu/en/">University of Luxembourg</a><br /> <br />
+				Data Scientist at <a href="https://zortify.com/">Zortify</a> </p>
+			</header>
+
+			<nav id="nav">
+				<ul>
+					<li><a href="../../index.html#one" class="active">About Me</a></li>
+					<li><a href="../../index.html#two">My Papers</a></li>
+					<li><a href="../../index.html#three">Other Activities</a></li>
+					<li><a href="../../index.html#four">Small Projects</a></li>
+
+				</ul>
+			</nav>
+
+			<footer>
+				<ul class="icons">
+					<li><a href="mailto:fred@philippy.lu" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
+					<li><a href="https://www.linkedin.com/in/fred-philippy/" class="icon brands fa-linkedin"><span class="label">Linkedin</span></a></li>
+					<li><a href="https://scholar.google.com/citations?user=oPd-YpYAAAAJ&hl=en" class="icon sharp fa-graduation-cap"><span class="label">Google Scholar</span></a></li>
+					<li><a href="https://orcid.org/0000-0001-5842-4285" class="icon brands fa-orcid"><span class="label">Orcid</span></a></li>
+					<li><a href="https://github.com/fredxlpy" class="icon brands fa-github"><span class="label">Github</span></a></li>
+					<li><a href="https://www.semanticscholar.org/author/Fred-Philippy/2089836413" class="icon solid fa-book-open"><span class="label">Semantic Scholar</span></a></li>
+				</ul>
+			</footer>
+
+			</section>
+			
+				<div id="wrapper">
+						
+					<div class="image main" data-position="center">
+						<img src="../../images/banner.jpg" alt="" />
+					</div>
+					
+					<div id="main" class="container">
+
+						<h2>Bootstrap Hypothesis Testing for Quantiles</h2>
+
+							
+<div id="bootstrapping" class="section level1">
+	<h1>Bootstrapping</h1>
+	<p>Bootstraping is a statistical method that resamples the initial dataset (with replacement) many times in order to create multiple simulated datasets. Consequently, these simulated datasets do not only allow to calculate different statistics, such as standard errors or confidence intervals, but also to perform hypothesis testing.
+	## Assumptions for one-sided hypothesis tests on quantile value
+	The goal is to create a one-sided bootstrap hypothesis testing procedure on the quantile value of a random variable <span class="math inline">\(X\)</span>. More precisely, we aim to test
+	<span class="math display">\[
+	H_0: q_X(\alpha) \geq q \quad \text{ against } \quad H_1:q_X(\alpha) &lt; q
+	\]</span></p>
+	
+	<div class="definition">
+	<span id="def:unnamed-chunk-2" class="definition"><strong>Definition 1  </strong></span>Let <span class="math inline">\(X\)</span> be a random variable. 
+	We say that <span class="math inline">\(x_\alpha\)</span> is a <span class="math inline">\(\alpha\)</span>-quantile (with <span class="math inline">\(\alpha \in ]0.1[\)</span>) if it verifies the following two inequalities:
+	<span class="math display">\[ \begin{cases} \mathbb{P}(X &lt; x_\alpha) \leq \alpha \\ \mathbb{P}(X \leq x_\alpha) \geq \alpha \end{cases} \]</span>
+	</div>
+	
+	<p>In the general case there is often more than a single value for a given <span class="math inline">\(\alpha\)</span> that verifies these two inequalities. One can, on the other hand, determine an interval that contains all these values :
+	<span class="math display">\[ [q_X^-(\alpha), q_X^+(\alpha)] \]</span>
+	where
+	<span class="math display">\[ \boxed{q_X^-(\alpha) = \inf\{x \in \mathbb{R} \quad \text{t.q.} \quad \mathbb{P}(X \leq x)\geq\alpha\}}\]</span>
+	<span class="math display">\[ \boxed{q_X^+(\alpha) = \sup\{x \in \mathbb{R} \quad \text{t.q.} \quad \mathbb{P}(X &lt; x)\leq\alpha\}}\]</span></p>
+	
+	<div class="remark">
+	 <span class="remark"><em>Remark. </em></span> Usually, the quantile function is defined as <span class="math inline">\(q_X^-(\alpha)\)</span>. 
+	From now on we will note, however, that <span class="math inline">\(q_X(\alpha) = q_X^+(\alpha)\)</span>.
+	</div>
+	
+	
+	<div class="definition">
+	<span id="def:unnamed-chunk-4" class="definition"><strong>Definition 2  </strong></span>Let <span class="math inline">\(X\)</span> be a random variable. For any <span class="math inline">\(\alpha \in ]0,1[\)</span>
+	<span class="math display">\[ q_X(\alpha) = q_X^+(\alpha) = \sup\{x \in \mathbb{R}  \quad \text{t.q.} \quad \mathbb{P}(X &lt; x)\leq\alpha\} \]</span>
+	</div>
+	
+	<pre><code class="language-r">
+quant = function(x, alpha){
+	x = sort(x)
+	q = c()
+	for (i in 1:length(x)){
+	q[i] = sum(x&lt;x[i]) / length(x)
+	}
+	return(max(x[q &lt;= alpha]))
+}
+	</code></pre>
+	
+	<p>In order to carry out the hypothesis test we must first choose and define a test statistic, which we will note <span class="math inline">\(T_{x_\alpha}\)</span>. </p>
+	<p>Let <span class="math inline">\(X_1,\cdots,X_n\)</span> be a sample from a random variable X.</p>
+	
+	<div class="definition">
+	<span id="def:unnamed-chunk-6" class="definition"><strong>Definition 3  </strong></span><span class="math display">\[ T_{q} = \sum_{i=1}^{n} \mathbb{1}_{]-\infty,q[}(X_i) \]</span>
+	</div>
+	
+	<p>In other words, <span class="math inline">\(T_{q}\)</span> therefore represent the number of observations taking a smaller value than <span class="math inline">\(q\)</span>. </p>
+	<pre><code class="language-r">
+# Test statistic
+T_stat = function(X, q){
+	sum(X&lt;q)
+}
+	</code></pre>
+	<p>In other words, under <span class="math inline">\(H_0\)</span>, for a sample of size <span class="math inline">\(n\)</span>, we find that
+	<span class="math display">\[
+	\frac{n-T_{q}}{n} \geq \alpha \iff T_{q} \geq n\times\alpha
+	\]</span></p>
+	
+	<div id="bootstrap-hypothesis-testing-procedure" class="section level2">
+	<h2>Bootstrap hypothesis testing procedure</h2>
+	<p>Before performing the hypothesis test, we must, by all means, ensure that the empiricical distribution of the sample verifies <span class="math inline">\(H_0\)</span>. Otherwise the results are going to be incorrect. 
+	In case where the the empirical sample distribution does not verifiy <span class="math inline">\(H_0\)</span>, we substract the empirical quantile of interest and add <span class="math inline">\(q\)</span> to every single sample value. This will ensure that the empirical sample distribution verifies <span class="math inline">\(H_0\)</span>.</p>
+	
+	<p>We start by generating <span class="math inline">\(B\)</span> bootstrap samples <span class="math inline">\(X^{*i}=(X_1^{*i},\dots,X_{n}^{*i})\)</span>. 
+	Using the bootstrap samples we can then calculate the test statistic for each sample. <span class="math display">\[T_{q}^{*i} = \sum_{j=1}^{n} \mathbb{1}_{]-\infty,q[}(X_j^{*i}) \qquad (i=1,\dots,B)\]</span>
+	and then determine the empirical p-value
+	<span class="math display">\[ \widehat{pval} = \frac{1}{B} \sum_{i=1}^{B} \mathbb{1}_{\{ T_{q}^{*i} &gt; T_{q}\}} \]</span>
+	by comparing the <span class="math inline">\(T_{q}^{*i}\)</span> to the value of <span class="math inline">\(T_{q}\)</span>, the statistic obtained for the initial sample.</p>
+	<pre><code class="language-r">
+bootstrap_quantile_test = function(x, alpha, q, B, sign_level){
+# Test statistic for initial sample
+T = T_stat(x,q)
+
+# Sample under H_0
+if (T&lt;length(x)*alpha){ H0_sample = x - quant(x,alpha) + q }
+if (T&gt;=length(x)*alpha){ H0_sample = x }
+
+# Generating bootstrap samples and computation of test statistics
+T_boot=c()
+for (i in 1:B){
+boot_sample = sample(x = H0_sample,
+					size = length(x),
+					replace = TRUE)
+T_boot = c(T_boot, T_stat(boot_sample, q))
+}
+
+# Determinating rejection area
+pvals = c() # p_values
+for (i in 0:length(x)){
+pvals = c(pvals,mean(T_boot&gt;i))
+} 
+names(pvals) =0:length(x)
+
+return(list(pval = mean(T_boot &gt; T),
+			rejection_limit = as.numeric(names(which.max(pvals[pvals&lt;sign_level])))))
+}
+	</code></pre>
+	</div>
+	<div id="example" class="section level2">
+	<h2>Example</h2>
+	<pre><code class="language-r">
+sample = runif(1000, 0,100)
+
+( results = bootstrap_quantile_test(x=sample, alpha=0.3, q=50, B=10000, sign_level=0.05) )
+## $pval
+## [1] 0.4772
+## 
+## $rejection_limit
+## [1] 506
+	</code></pre>
+	<p>We find that the empirical p-value is
+	<span class="math display">\[ \widehat{pval} = 0.4772 \]</span>
+	So, for a test with a significance level of <span class="math inline">\(0.05\)</span> we do not reject <span class="math inline">\(H_0\)</span>. </p>
+	<p>Furthermore, we find that the emprirical rejection region for <span class="math inline">\(T_q\)</span> is
+	<span class="math display">\[ 
+	[506 ; +\infty ]
+	\]</span></p>
+	</div>
+	</div>
+					</div>
+				</div>
+
+
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+			<!-- Include the Prism JavaScript file -->
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+			<!-- Include the Prism R language definition file -->
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-r.min.js"></script>
+
+
+	</body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE HTML>
+<!--
+	Read Only by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Fred Philippy's Website</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../../assets/css/main.css" />
+
+		<script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"> </script>
+		<!-- Include the Prism CSS file -->
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css" rel="stylesheet" />
+	</head>
+
+	<body class="is-preload">
+
+		<!-- Header -->
+		<section id="header">
+			<header>
+				<span class="image avatar"><img src="../../images/avatar.jpg" alt="" /></span>
+				<h1  id="logo"><a href="../../index.html">Fred Philippy</a></h1>
+				<p>PhD candidate at the <a href="https://www.uni.lu/snt-en/">Interdisciplinary Centre for Security, Reliability and Trust</a> (SnT), <a href="https://www.uni.lu/en/">University of Luxembourg</a><br /> <br />
+				Data Scientist at <a href="https://zortify.com/">Zortify</a> </p>
+			</header>
+
+			<nav id="nav">
+				<ul>
+					<li><a href="../../index.html#one" class="active">About Me</a></li>
+					<li><a href="../../index.html#two">My Papers</a></li>
+					<li><a href="../../index.html#three">Other Activities</a></li>
+					<li><a href="../../index.html#four">Small Projects</a></li>
+
+				</ul>
+			</nav>
+
+			<footer>
+				<ul class="icons">
+					<li><a href="mailto:fred@philippy.lu" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
+					<li><a href="https://www.linkedin.com/in/fred-philippy/" class="icon brands fa-linkedin"><span class="label">Linkedin</span></a></li>
+					<li><a href="https://scholar.google.com/citations?user=oPd-YpYAAAAJ&hl=en" class="icon sharp fa-graduation-cap"><span class="label">Google Scholar</span></a></li>
+					<li><a href="https://orcid.org/0000-0001-5842-4285" class="icon brands fa-orcid"><span class="label">Orcid</span></a></li>
+					<li><a href="https://github.com/fredxlpy" class="icon brands fa-github"><span class="label">Github</span></a></li>
+					<li><a href="https://www.semanticscholar.org/author/Fred-Philippy/2089836413" class="icon solid fa-book-open"><span class="label">Semantic Scholar</span></a></li>
+				</ul>
+			</footer>
+
+			</section>
+			
+				<div id="wrapper">
+						
+					<div class="image main" data-position="center">
+						<img src="../../images/banner.jpg" alt="" />
+					</div>
+					
+					<div id="main" class="container">
+
+						<h2>DNA sequence classification via an EM algorithm</h2>
+
+							
+						<div id="implementation-of-the-seqem-algorithm" class="section level1">
+							<h1>Implementation of the SeqEM algorithm</h1>
+							<div id="introduction" class="section level2">
+							<h2>Introduction</h2>
+							<p>In the article  , the authors describe a new approach to determine for an individual whether or not a genetic variation is found at a specific position in a genome. The authors propose a new method, based on the EM algorithm, called <em>SeqEM</em>, which is supposed to be more precise and accurate than the methods that have existed until now. 
+							The goal is to implement the algorithm by hand in R.</p>
+							<blockquote>
+							<blockquote>
+							<p>Here, we propose a novel genotype-calling algorithm that, in contrast to the other methods, estimates parameters underlying the posterior probabilities in an adaptive way rather than arbitrarily specifying them a priori. The algorithm, which we call SeqEM, applies the well-known Expectation-Maximization algorithm to an appropriate likelihood for a sample of unrelated individuals with next-generation sequence data, leveraging information from the sample to estimate genotype probabilities and the nucleotide-read error rate.</p>
+							</blockquote>
+							</blockquote>
+							</div>
+							<div id="context" class="section level2">
+							<h2>Context</h2>
+							<p>The element that represents a position in the DNA is called a <em>nucleotide</em>. So to identify the genotype of an individual, the genome of the individual is compared to a reference genome. This is equivalent to comparing the nucleotides of the individual’s genome to the nucleotides of the reference genome. If the nucleotide is identical to the reference nucleotide it is said to be a reference nucleotide (R), otherwise it is said to be a variant nucleotide (V). 
+							However, it is not possible to compare the entire DNA to the reference DNA. We therefore choose a fragment of the DNA that interests us (genetic region of interest) and we “copy” (by amplification) this fragment several times. Afterwards, we can align all these fragments with the genetic region of interest of the reference genome. The number of overlaps of these DNA fragments is called <em>reading depth</em>, which we will note <em>N</em>. One is then able to count, line by line, for each nucleotide in this “overlap area” the number of reference and variant nucleotides. The number of variant nucleotides <em>X</em>, which can vary between 0 and <em>N</em>, is noted at a precise position. 
+							For a given position in the DNA, i.e. a certain nucleotide, 3 types (genotypes) of individuals can be distinguished:</p>
+							<ul>
+							<li>VV homozygotes <span class="math inline">\(\rightarrow\)</span> <span class="math inline">\(N\)</span> variant nucleotides</li>
+							<li>RR homozygotes <span class="math inline">\(\rightarrow\)</span> <span class="math inline">\(N\)</span> reference nucleotides</li>
+							<li>(RV) heterozygotes <span class="math inline">\(\rightarrow\)</span> mixture between variant and reference nucleotides</li>
+							</ul>
+							<p>In a perfect world one would therefore, theoretically, be able to identify with certainty the genotype of an individual. However, we are faced with a certain “nucleotide reading error”, which may, for example, be due to errors in the coding of DNA fragments. This error then allows certain nucleotides to be incorrectly encoded and, for example, an RR homozygote presents a nucleotide varying at the position of interest in one of the aligned DNA fragments. Moreover, the number of observed variant nucleotides <em>X</em> does not only depend on the risk of this error, which we will note <span class="math inline">\(\alpha\)</span>, but also on the reading depth <em>N</em>. 
+							The probability of observing a variant nucleotide at a given position in the DNA fragment in an RR homozygote is therefore no longer 0, but <span class="math inline">\(\alpha\)</span>. We can see that the larger the <span class="math inline">\(\alpha\)</span> and the smaller the <span class="math inline">\(N\)</span>, the more difficult it will be to determine the true genotype. </p>
+							
+							<p>We deduce that, for example if the individual is a RR homozygous, the probability of observing <span class="math inline">\(X\)</span> variant nucleotides on <span class="math inline">\(N\)</span> nucleotides in total is <span class="math inline">\(\binom{N_i}{X_i}. \alpha^{X_i} (1-\alpha)^{N_i-X_i}\)</span>, because there are <span class="math inline">\(\binom{N_i}{X_i}\)</span> possibilities to observe <span class="math inline">\(X\)</span> variant nucleotides among <span class="math inline">\(N\)</span> nucleotides and the probability to observe exactly <span class="math inline">\(X\)</span> variant nucleotides is <span class="math inline">\(\alpha^{X_i} (1-\alpha)^{N_i-X_i}\)</span>. We can then conclude that the number of variant nucleotides observed has a binomial distribution. We find the same results (with obviously other parameter values) for the two other genotypes.</p>
+							</div>
+							<div id="the-model" class="section level2">
+							<h2>The model</h2>
+							<p>Let <span class="math inline">\(\mathbf{N_i}\)</span> be the reading depth set for the individual <span class="math inline">\(i\)</span>. </p>
+							
+							<div class="remark">
+							 <span class="remark"><em>Remark. </em></span> In the following we will treat the <span class="math inline">\(N_i\)</span> rather as fixed values and not as parameters. 
+							For the simulations we will even note that
+							<span class="math display">\[\forall i \in \{1,\dots,S\}, \quad N_i = N\]</span>
+							</div>
+							
+							
+							<p>We designate by</p>
+							<ul>
+							<li><span class="math inline">\(\boxed{X_i \in \{0,\ldots,N_i\}}\)</span> the number of observed variant nucletoides <span class="math inline">\(i\)</span></li>
+							<li><span class="math inline">\(\boxed{Z_i \in \{\text{RR, VV, RV}\}}\)</span> the true genotype of the individual <span class="math inline">\(i\)</span></li>
+							</ul>
+							
+							<p>We note <span class="math inline">\(\boxed{\theta = \left(\alpha, p_{\text{VV}}, p_{\text{RV}}\right)}\)</span> , where</p>
+							<ul>
+							<li><span class="math inline">\(\alpha\)</span> is the reading error, i.e. the probability that a <span class="math inline">\(R\)</span> nucleotide is wrongly identified as <span class="math inline">\(V\)</span> and vice versa.</li>
+							<li><span class="math inline">\(p_{\text{VV}}\)</span> and <span class="math inline">\(p_{\text{RV}}\)</span> are the proportions of <span class="math inline">\(VV\)</span> and <span class="math inline">\(RV\)</span> genotypes in the population 
+							<span class="math inline">\(\Longrightarrow\)</span> <span class="math inline">\(1-p_{\text{VV}}-p_{\text{RV}}\)</span> is the proportion of <span class="math inline">\(RR\)</span> genotype in the population</li>
+							</ul>
+							
+							<p>So, we find that</p>
+							<ul>
+							<li><span class="math inline">\(\mathbb{P}(Z_i = \text{VV} | \theta) = p_\text{VV}\)</span></li>
+							<li><span class="math inline">\(X_i | Z_i=\text{VV} \sim B(1-\alpha,N_i)\)</span></li>
+							</ul>
+							
+							<ul>
+							<li><span class="math inline">\(\mathbb{P}(Z_i = \text{RV} | \theta) = p_\text{RV}\)</span></li>
+							<li><span class="math inline">\(X_i | Z_i=\text{RV} \sim B\left(0.5,N_i\right)\)</span></li>
+							</ul>
+							
+							<ul>
+							<li><span class="math inline">\(\mathbb{P}(Z_i = \text{RR} | \theta) = 1-p_\text{VV}-p_\text{RV}\)</span></li>
+							<li><span class="math inline">\(X_i | Z_i=\text{RR} \sim B(\alpha,N_i)\)</span></li>
+							</ul>
+							
+							Knowing that <span class="math inline">\(\mathbb{P}\left(X_i, Z_i | \theta \right) = \mathbb{P}(Z_i | \theta) \times \mathbb{P}(X_i | Z_i, \theta)\)</span>, we find that
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<ul>
+							<li><span class="math inline">\(\boxed{\mathbb{P}\left(X_i, Z_i=\text{VV} | \theta \right) = \binom{N_i}{X_i} (1-\alpha)^{X_{i}} \alpha^{N_{i}-X_{i}} p_{\text{VV}}}\)</span></li>
+							<li><span class="math inline">\(\boxed{\mathbb{P}\left(X_i, Z_i=\text{RV} | \theta \right) = \binom{N_i}{X_i}\left(\frac{1}{2}\right)^{N_i} p_{\text{RV}}}\)</span></li>
+							<li><span class="math inline">\(\boxed{\mathbb{P}\left(X_i, Z_i=\text{RR} | \theta \right) = \binom{N_i}{X_i} \alpha^{X_i} (1-\alpha)^{N_i-X_i} (1-p_{\text{VV}}-p_{\text{RR}})}\)</span></li>
+							</ul>
+							</div>
+							
+							<p>Knowing that the pairs <span class="math inline">\(\left(\left(X_{i}, Z_{i}\right)\right)_{1 \leq i \leq n}\)</span> are independent,
+							<span class="math display">\[ \boxed{\mathbb{P}(X, Z | \theta)=\prod_{i=1}^{n} \mathbb{P}\left(X_{i}, Z_{i} | \theta\right)} \]</span></p>
+							
+							</div>
+							<div id="simulations" class="section level2">
+							<h2>Simulations</h2>
+							<p>In order to better understand the problem and to recognize why an algorithm such as <em>SeqEm</em> is needed to determine the genotype, some simulations will be carried out to understand the motivations behind the development of such an algorithm. </p>
+							
+							<p>To carry out this simulation we distinguish 4 steps:</p>
+							<ol style="list-style-type: decimal">
+							<li>A number of individuals <span class="math inline">\(S\)</span> is chosen, as well as the proportions of VV homogyzotes and heterogyzotes in the population (<span class="math inline">\(p_\text{VV}\)</span> and <span class="math inline">\(p_\text{RV}\)</span>).</li>
+							<li>A sample of size <span class="math inline">\(S\)</span> of the genotypes (variable <span class="math inline">\(Z_i\)</span>) of the <span class="math inline">\(S\)</span> individuals is generated according to a multinomial distribution defined by the parameters <span class="math inline">\(p_\text{VV}\)</span> and <span class="math inline">\(p_\text{RV}\)</span>.</li>
+							<li>For the reading depth <span class="math inline">\(N\)</span> and the reading error <span class="math inline">\(\alpha\)</span>, we simulate for each individual <span class="math inline">\(i\)</span> according to the law of <span class="math inline">\(X_i | Z_i\)</span> the number of observed variant nucleotides.</li>
+							<li>Steps 1 - 3 are repeated for different values of <span class="math inline">\(N\)</span> and <span class="math inline">\(\alpha\)</span>.</li>
+							</ol>
+							
+							<p>To simplify this procedure, steps 1-3 are integrated into a function called <em>data_generation</em> which, depending on the user’s choice, generates a graphical representation of the <span class="math inline">\(X_i\)</span> and/or returns the vectors of the <span class="math inline">\(X_i\)</span> and <span class="math inline">\(Z_i\)</span>.</p>
+							<pre><code class="language-r">
+## Step 1 :
+S = 500    # number of individuals
+pVV = 0.4  # proportion of VV homozygotes in the population
+pRV = 0.3  # proportion of heterozygotes in the population
+
+data_generation = function(S, pVV, pRV, N, alpha, getData=FALSE, plot=FALSE){
+	
+	## Step 2 : Simulation of a sample of genotypes of all S individuals  
+	Z = sample(x = c(&quot;VV&quot;, &quot;RV&quot;, &quot;RR&quot;),
+				size = S,
+				replace=TRUE,
+				prob = c(pVV, pRV, 1-pVV-pRV))
+	
+	N = rep(N,S)   # vector of reading depths for all individuals
+	X = rep(NA,S)  # vector of the number of variant nucleotides variants for all individuals
+	
+	## Step 3 : Simulation of the number of variant nucleotides for each individual
+	#  (according to his genotype)
+	for (i in 1:S){
+	if (Z[i]==&quot;VV&quot;){X[i]=rbinom(1,N[i],1-alpha)}
+	else if (Z[i]==&quot;RV&quot;){X[i]=rbinom(1,N[i],0.5)}
+	else {X[i]=rbinom(1,N[i],alpha)}
+	}
+	
+	if (plot==TRUE){
+	# One-dimensional scatter plot and histogram
+	par(mfrow=c(1,2), mar=c(13,5,5,2), xpd=TRUE)
+	plot(1:S, X,
+			col=ifelse(Z==&quot;RV&quot;,&quot;green&quot;,ifelse(Z==&quot;VV&quot;,&quot;blue&quot;,&quot;red&quot;)), xlab=&quot;Individuals&quot;)
+	legend(&quot;topleft&quot;,
+			inset=c(0,-0.45),
+			legend=c(&quot;VV&quot;,&quot;RV&quot;,&quot;RR&quot;),
+			col=c(&quot;blue&quot;,&quot;green&quot;,&quot;red&quot;),
+			title=&quot;Genotypes&quot;,
+			pch=1, cex=0.35)
+	par(mar=c(13,2,5,2))
+	hist(X, breaks=30, main=&quot;&quot;)
+	}
+	if(getData==TRUE){return(list(X=X, Z=Z))}
+}
+							</code></pre>
+							<p>Since the difficulty of determining an individual’s genotype depends neither on the number of individuals nor on the proportions of different genotypes in the population, our understanding of the problem would not be broadened by varying these parameters. 
+							The reading error <span class="math inline">\(\alpha\)</span> as well as the reading depth <span class="math inline">\(N\)</span> can, on the other hand, make the complexity of genotyping more or less difficult. 
+							The graphs below will help to illustrate this finding. 
+							For each vector <span class="math inline">\(X\)</span> a one-dimensional scatterplot and a histogram is generated.</p>
+							<pre><code class="language-r">
+set.seed(1)
+## Step 4
+
+data_generation(S, pVV, pRV, N=50, alpha=0.001, plot=TRUE)
+							</code></pre>
+							<p><img src="images/unnamed-chunk-5-1.png" width="672" /></p>
+							<pre><code class="language-r">
+data_generation(S, pVV, pRV, N=10, alpha=0.01, plot=TRUE)
+							</code></pre>
+							<p><img src="images/unnamed-chunk-5-2.png" width="672" /></p>
+							<pre><code class="language-r">
+data_generation(S, pVV, pRV, N=50, alpha=0.2, plot=TRUE)
+							</code></pre>
+							<p><img src="images/unnamed-chunk-5-3.png" width="672" /></p>
+							<pre><code class="language-r">
+ata_generation(S, pVV, pRV, N=10, alpha=0.2, plot=TRUE)
+							</code></pre>
+							<p><img src="images/unnamed-chunk-5-4.png" width="672" /></p>
+							<p>It is immediately noticeable that for <span class="math inline">\(N\)</span> rather large and <span class="math inline">\(\alpha\)</span> rather small one can easily distinguish the genotypes of the different individuals using the number of variant nucleotides. <span class="math inline">\(\rightarrow\)</span> Figure 1. 
+							Graphically, lines could even be added to the histogram and scatter plot to separate the 3 genotypes. 
+							On the other hand, if the reading depth is small and/or if the reading error is large, one is no longer able to clearly distinguish the different genotypes by observing the number of variant nucleotides..</p>
+							
+							</div>
+							<div id="a-posteriori-distribution-mathbbpz-x-theta" class="section level2">
+							<h2>A posteriori distribution: <span class="math inline">\(\mathbb{P}(Z | X ; \theta)\)</span></h2>
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><font size="1">
+							<span class="math display">\[\begin{align*}
+							  \mathbb{P}\left(Z_{i}=k | X_{i} , \theta \right) &amp;=\frac{\mathbb{P}\left(X_{i} | Z_{i}=k, \theta\right) \mathbb{P}\left(Z_{i}=k | \theta \right)}{\mathbb{P}\left(X_{i} |\theta \right)} \\
+							  &amp; = \frac{\mathbb{P}\left(X_{i} | Z_{i}=k, \theta\right) \mathbb{P}\left(Z_{i}=k | \theta \right)}{\mathbb{P}\left(X_{i} | Z_{i}=\text{VV} , \theta\right) \mathbb{P}\left(Z_{i}=\text{VV} | \theta\right) + \mathbb{P}\left(X_{i} | Z_{i}=\text{RV}, \theta\right) \mathbb{P}\left(Z_{i}=\text{RV} | \theta \right) + \mathbb{P}\left(X_{i} | Z_{i}=\text{RR}, \theta \right) \mathbb{P}\left(Z_{i}=\text{RR} | \theta \right)} \\ 
+							  &amp; = \frac{\mathbb{P}\left(X_{i} | Z_{i}=k, \theta \right) \mathbb{P}\left(Z_{i}=k | \theta \right)}{\mathbb{P}\left(X_{i} | Z_{i}=\text{VV}, \theta \right) \times p_\text{VV} + \mathbb{P}\left(X_{i} | Z_{i}=\text{RV}, \theta \right) \times p_\text{RV} + \mathbb{P}\left(X_{i} | Z_{i}=\text{RR}, \theta \right) \times (1-p_\text{VV}-p_\text{RV})}
+							\end{align*}\]</span>
+							</font></p>
+							</div>
+							</div>
+							<div id="qtheta-thetatextold-and-its-derivatives-and-formulas-for-the-em-steps" class="section level2">
+							<h2><span class="math inline">\(Q(\theta | \theta^{\text{old}})\)</span> and its derivatives and formulas for the E/M steps</h2>
+							We know that if the pairs <span class="math inline">\(((X_i,Z_i))_{1\leq i \leq S}\)</span> are independent, then
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><span class="math display">\[
+							Q(\theta | \theta^{\text{old}}) =  \sum_{i=1}^{n} \left\{ \int_{Z_{i}} \mathbb{P}\left(Z_{i} | X_{i}, \theta_{\text {old}}\right) \log \left[\mathbb{P}\left(X_{i}, Z_{i} | \theta\right)\right] d Z_{i} \right\}
+							\]</span></p>
+							</div>
+							
+							We have
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><font size="2">
+							<span class="math display">\[\begin{align*}
+							  \log \left[\mathbb{P}\left(X_{i}, Z_{i} | \theta\right)\right] = &amp; \left[\log\left(f_{B(1-\alpha,N_i)}(X_i)\right) + \log(p_{\text{VV}})\right] \times \mathbb{1}_{\{Z_i=\text{VV}\}} \\
+							  &amp; +  \left[\log\left(f_{B(0.5,N_i)}(X_i)\right) + \log(p_{\text{RV}})\right] \times \mathbb{1}_{\{Z_i=\text{RV}\}} \\
+							  &amp; +  \left[\log\left(f_{B(\alpha,N_i)}(X_i)\right) + \log(1-p_{\text{VV}}-p_{\text{VV}})\right] \times \mathbb{1}_{\{Z_i=\text{RR}\}}
+							\end{align*}\]</span>
+							</font></p>
+							</div>
+							and
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><font size="2">
+							<span class="math display">\[\begin{align*}
+							  \eta_{\text{VV}}(i) &amp;= \mathbb{P}\left(Z_{i} = \text{VV} | X_{i}, \theta_{\text {old}}\right) \\
+							  &amp;= \frac{\binom{N_i}{X_i} (1-\alpha_{old})^{X_{i}} \alpha_{old}^{N_{i}-X_{i}} p_\text{VV}^{old}}{\binom{N_i}{X_i} (1-\alpha_{old})^{X_{i}} \alpha_{old}^{N_{i}-X_{i}} p_\text{VV}^{old} + \binom{N_i}{X_i} \left(\frac{1}{2}\right)^{N_i} p_\text{RV}^{old} + \binom{N_i}{X_i} \alpha_{old}^{X_i} (1-\alpha_{old})^{N_i-X_i} (1-p_\text{VV}^{old}-p_\text{RV}^{old})} \\
+							  &amp;\left(= \frac{dbinom(X_i,N_i,1-\alpha_{old}) p_\text{VV}^{old}} {dbinom(X_i,N_i,1-\alpha_{old})p_\text{RV}^{old} + dbinom(X_i,N_i,0.5)p_\text{RV}^{old} + dbinom(X_i,N_i,\alpha_{old})(1-p_\text{VV}^{old}-p_\text{RV}^{old})} \right)
+							\end{align*}\]</span>
+							</font></p>
+							</div>
+							and in the same way we have
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><font size="2">
+							<span class="math display">\[\begin{align*}
+							  \eta_{\text{RV}}(i) &amp;= \frac{\binom{N_i}{X_i} \left(\frac{1}{2}\right)^{N_i} p_\text{RV}^{old}}{\binom{N_i}{X_i} (1-\alpha_{old})^{X_{i}} \alpha_{old}^{N_{i}-X_{i}} p_\text{VV}^{old} + \binom{N_i}{X_i} \left(\frac{1}{2}\right)^{N_i} p_\text{RV}^{old} + \binom{N_i}{X_i} \alpha_{old}^{X_i} (1-\alpha_{old})^{N_i-X_i} (1-p_\text{VV}^{old}-p_\text{RV}^{old})} \\
+							  &amp;\left(= \frac{dbinom(X_i,N_i,0.5) p_\text{VV}^{old}}{dbinom(X_i,N_i,1-\alpha_{old})p_\text{RV}^{old} + dbinom(X_i,N_i,0.5)p_\text{RV}^{old} + dbinom(X_i,N_i,\alpha_{old})(1-p_\text{VV}^{old}-p_\text{RV}^{old})} \right)
+							\end{align*}\]</span></p>
+							<p><span class="math display">\[\begin{align*}
+							  \eta_{\text{RR}}(i) &amp;= \frac{\binom{N_i}{X_i} \alpha_{old}^{X_i} (1-\alpha_{old})^{N_i-X_i} (1-p_\text{VV}^{old}-p_\text{RV}^{old})}{\binom{N_i}{X_i} (1-\alpha_{old})^{X_{i}} \alpha_{old}^{N_{i}-X_{i}} p_\text{VV}^{old} + \binom{N_i}{X_i} \left(\frac{1}{2}\right)^{N_i} p_\text{RV}^{old} + \binom{N_i}{X_i} \alpha_{old}^{X_i} (1-\alpha_{old})^{N_i-X_i} (1-p_\text{VV}^{old}-p_\text{RV}^{old})} \\
+							  &amp;\left(= \frac{dbinom(X_i,N_i,\alpha_{old}) (1-p_\text{VV}^{old}-p_\text{RV}^{old})} {dbinom(X_i,N_i,1-\alpha_{old})p_\text{RV}^{old} + dbinom(X_i,N_i,0.5)p_\text{RV}^{old} + dbinom(X_i,N_i,\alpha_{old})(1-p_\text{VV}^{old}-p_\text{RV}^{old})} \right)
+							\end{align*}\]</span>
+							</font></p>
+							</div>
+							
+							<span class="math inline">\(Q(\theta | \theta^{\text{old}})\)</span> is then given by
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><span class="math display">\[\begin{align*}
+							  Q(\theta | \theta^{\text{old}}) = \sum_{i=1}^{S} \Big\{&amp; \eta_{\text{VV}}(i) \left[\log\left(f_{B(1-\alpha,N_i)}(X_i)\right) + \log(p_{\text{VV}}) \right] \\
+							  &amp;+ \eta_{\text{RV}}(i) \left[\log\left(f_{B(0.5,N_i)}(X_i)\right) + \log(p_{\text{RV}}) \right]  \\
+							  &amp;+\eta_{\text{RR}}(i) \left[\log\left(f_{B(\alpha,N_i)}(X_i)\right) + \log(1-p_{\text{VV}}-p_{\text{RV}}) \right] \Big\}
+							\end{align*}\]</span></p>
+							</div>
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p>where <span class="math inline">\(\eta_{\text{VV}}(i) + \eta_{\text{RV}}(i) + \eta_{\text{RR}}(i) = 1 \quad , \; \forall i \in \{1,\dots,S\}\)</span></p>
+							</div>
+							
+							<p>In order to be able to maximize <span class="math inline">\(Q(\theta | \theta^{\text{old}})\)</span> with respect to <span class="math inline">\(\theta = (\alpha, p_\text{VV}, p_\text{RV})\)</span> it is necessary to calculate the partial derivatives of <span class="math inline">\(Q(\theta | \theta^{\text{old}})\)</span> with respect to <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(p_\text{VV}\)</span> and <span class="math inline">\(p_\text{RV}\)</span>:</p>
+							
+							<p>The partial derivatives are given by</p>
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><font size="2">
+							<span class="math inline">\(\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial \alpha} = \sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \left[ X_i \frac{-1}{1-\alpha} + (N_i-X_i)\frac{1}{\alpha} \right] + \eta_{\text{RR}}(i)\left[ X_i \frac{1}{\alpha} - (N_i-X_i)\frac{1}{1-\alpha} \right] \right\}\)</span>
+							
+							
+							<span class="math inline">\(\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial p_\text{VV}} = \sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \frac{1}{p_\text{VV}} - \eta_{\text{RR}}(i) \frac{1}{1-p_\text{VV}-p_\text{RV}} \right\}\)</span>
+							
+							
+							<span class="math inline">\(\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial p_\text{RV}} = \sum_{i=1}^{S}\left\{ \eta_{\text{RV}}(i) \frac{1}{p_\text{RV}} - \eta_{\text{RR}}(i) \frac{1}{1-p_\text{VV}-p_\text{RV}} \right\}\)</span>
+							</font></p>
+							</div>
+							<p>We are therefore obliged to solve the following system of equations:
+							<span class="math display">\[\begin{equation*}
+							  \begin{cases}
+								\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial \alpha} = 0 \\\\
+								\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial p_\text{VV}} = 0 \\\\
+								\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial p_\text{RV}} = 0
+							  \end{cases}
+							\end{equation*}\]</span></p>
+							<p>According to the calculations in the appendix we then find the expressions for updating the parameters :</p>
+							<p><span class="math display">\[\begin{align*} 
+							  \alpha_{new} &amp;= \frac{\displaystyle \sum_{i=1}^{S} X_i \eta_\text{RR}(i) + \left(N_i - X_i \right) \eta_\text{VV}(i)}{\displaystyle \sum_{i=1}^{S} N_i \left(\eta_\text{RR}(i) + \eta_\text{VV}(i) \right)} \\
+							  p_\text{VV}^{new} &amp;= \frac{\displaystyle \sum_{i=1}^{S} \eta_\text{VV}(i)}{S} \\
+							  p_\text{RV}^{new} &amp;= \frac{\displaystyle \sum_{i=1}^{S} \eta_\text{RV}(i)}{S}
+							\end{align*}\]</span></p>
+							</div>
+							<div id="implementation-of-the-em-algorithm" class="section level2">
+							<h2>Implementation of the EM algorithm</h2>
+							<p>In order to simplify the implementation of the EM algorithm (or rather <em>SeqEM</em>) we define a function named <em>SeqEM</em> which takes as argument the vector <span class="math inline">\(X=(X_1,\dots,X_S)\)</span> representing the number of variant nucleotides observed for each of the <span class="math inline">\(S\)</span> individuals, the number of iterations of the algorithm (<span class="math inline">\(niter=500\)</span> by default), the starting values of <span class="math inline">\(\theta_{old}=(\alpha_{old}, p_\text{VV}^{old}, p_\text{RV}^{old})\)</span> as well as the reading depth <span class="math inline">\(N\)</span> which is identical for all individuals. </p>
+							
+							<p>This function calculates <span class="math inline">\(\eta_\text{VV}\)</span>, <span class="math inline">\(\eta_\text{RV}\)</span>, <span class="math inline">\(\eta_{RR}\)</span> according to the formulas fixed in the previous part and calculates, using these values, <span class="math inline">\(\theta_{new} = \left(\alpha_{new}, p_\text{VV}^{new}, p_\text{RV}^{new}\right)\)</span>. This procedure is repeated <em>niter</em> times, before the function returns the estimated parameters <span class="math inline">\(\hat{\theta} = \left(\hat{\alpha}, \hat{p}_\text{VV}, \hat{p}_\text{RV}\right)\)</span> and the vector of the called genotypes <span class="math inline">\(\hat{Z}\)</span>.</p>
+							
+							Genotypes are determined as follows:
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><span class="math display">\[
+							\forall i \in \{1,\dots,S\} \; , \quad \hat{Z}_i = \mathop{\mathrm{arg\,max}}_{k\in\{\text{VV,RV, RR}\}} \left\{ \mathbb{P}\left(X_{i}, k | \hat{\theta} \right) \right\}
+							\]</span></p>
+							</div>
+							
+							<pre><code class="language-r">
+SeqEM = function(X, alpha_start, pVV_start, pRV_start, N, niter=500){
+S=length(X)
+N=rep(N,S)
+alpha_new &lt;- alpha_start
+pVV_new &lt;- pVV_start
+pRV_new &lt;- pRV_start
+
+for(iter in niter){
+alpha_old &lt;- alpha_new
+pVV_old &lt;- pVV_new
+pRV_old &lt;- pRV_new
+
+# Computation of the etas
+etaVV = sapply(1:S, function(i){(dbinom(X[i],N[i],1-alpha_old)*pVV_old) /
+								(dbinom(X[i],N[i],1-alpha_old)*pVV_old +
+									dbinom(X[i],N[i],0.5)*pRV_old + 
+									dbinom(X[i],N[i],alpha_old)*(1-pVV_old-pRV_old))})
+
+etaRV = sapply(1:S, function(i){(dbinom(X[i],N[i],0.5)*pRV_old) /
+								(dbinom(X[i],N[i],1-alpha_old)*pVV_old +
+									dbinom(X[i],N[i],0.5)*pRV_old +
+									dbinom(X[i],N[i],alpha_old)*(1-pVV_old-pRV_old))})
+
+etaRR = sapply(1:S, function(i){(dbinom(X[i],N[i],alpha_old)*(1-pVV_old-pRV_old)) /
+								(dbinom(X[i],N[i],1-alpha_old)*pVV_old +
+									dbinom(X[i],N[i],0.5)*pRV_old +
+									dbinom(X[i],N[i],alpha_old)*(1-pVV_old-pRV_old))})
+
+# Updating the parameters
+alpha_new &lt;- sum(etaRR*X + etaVV*(N-X)) / sum(N*(etaRR+etaVV))
+pVV_new &lt;- mean(etaVV)
+pRV_new &lt;- mean(etaRV)
+}
+# Calling of genotypes according to estimated parameters
+Z_EM = rep(NA,S)   # vector of called genotypes
+for (i in 1:S){
+# Calculation of the likelihoods of the different genotypes for individual i 
+probs = c(dbinom(X[i],N[i],1-alpha_new)*pVV_new,
+			dbinom(X[i],N[i],0.5)*pRV_new,
+			dbinom(X[i],N[i],alpha_new)*(1-pVV-pRV_new))
+
+# For individual i, the genotype with the highest likelihood of occurrence is chosen.
+Z_EM[i] = ifelse(which.max(probs)==1,
+				&quot;VV&quot;,
+				ifelse(which.max(probs)==2,
+						&quot;RV&quot;,
+						&quot;RR&quot;))
+}
+return(list(alpha=alpha_new, pVV=pVV_new, pRV=pRV_new, Z=Z_EM))
+}					
+							</code></pre>
+							</div>
+							<div id="experimentations" class="section level2">
+							<h2>Experimentations</h2>
+							<p>In order to simplify the implementation of the experiments, we create a function named <em>EM_accuracy</em> which allows us to measure the proportion of genotypes correctly determined by the <em>SeqEM</em> algorithm, i.e. the classification accuracy. This function compares the vector <span class="math inline">\(Z=(Z_1,\dots,Z_S)\)</span> of the true genotypes of the <span class="math inline">\(S\)</span> individuals to the vector <span class="math inline">\(\hat{Z}=(\hat{Z}_1,\dots,\hat{Z}_S)\)</span>, which contains the genotypes called by the <em>SeqEM</em> algorithm. 
+							This precision measurement is then given by
+							<span class="math display">\[ \frac{1}{S} \sum_{i=1}^{S} \mathbb{1}_{ \{ Z_i = \hat{Z}_i \} } \]</span></p>
+							<pre><code class="language-r">
+# Measuring the accuracy of the algorithm
+EM_accuracy = function(Z, Z_EM){
+	return(mean(Z == Z_EM))   # Proportion of genotypes correctly called
+}
+							</code></pre>
+							<p>Since we know that the difficulty of genotype calling depends strongly on the read error <span class="math inline">\(\alpha\)</span> and the read depth <span class="math inline">\(N\)</span>, we would like to see the change in terms of performance of the <em>SeqEM</em> algorithm in the case of variations of these two parameters. 
+							This first experiment is carried out by choosing a number of values for <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(N\)</span>. Then, using the function <em>data_generation</em>, which we had already created before, and after setting the number of individuals <span class="math inline">\(S\)</span> and the proportions <span class="math inline">\(p_\text{VV}\)</span> and <span class="math inline">\(p_\text{RV}\)</span>, we generate, according to the value of <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(N\)</span>, a pair of vectors <span class="math inline">\((X,Z)\)</span>. 
+							This is repeated for all selected <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(N\)</span> values and the classification accuracy of the <em>SeqEM</em> algorithm is measured each time.</p>
+							<pre><code class="language-r">
+S = 1000
+pVV = 0.3
+pRV = 0.2
+alpha_values = c(0.4, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0.02, 0.015, 0.01, 0.005, 0.002, 0.001)
+N_values = c(3, 5, 10, 15, 20, 50, 100)
+
+accuracies = c()
+set.seed(1)
+for (alpha in alpha_values){
+	for (N in N_values){
+	# Data simulation
+	data = data_generation(S, pVV, pRV, N, alpha, getData=TRUE)
+	
+	# Implementation of the SeqEM algorithm
+	SeqEM_result = SeqEM(data$X, alpha_start=0.1, pVV_start=0.1, pRV_start=0.1, N)
+	accuracies = c(accuracies,EM_accuracy(data$Z, SeqEM_result$Z))
+	}
+}
+accuracy_matrix = matrix(accuracies,
+							nrow=length(alpha_values),
+							ncol=length(N_values),
+							byrow=TRUE,
+							dimnames = list(alpha_values, N_values))
+							</code></pre>
+							<p>The proportions of genotypes in the population were arbitrarily chosen: <span class="math inline">\(p_\text{VV}=0.3\)</span> and <span class="math inline">\(p_\text{RV}=0.2\)</span>. 
+							The selected number of inviduals <span class="math inline">\(S\)</span> is equal to 1000. 
+							The results are summarized in the following table:</p>
+							<pre><code class="language-r">
+# Display of the table containing the results
+kbl(accuracy_matrix, format=&quot;latex&quot;, booktabs = TRUE, escape=FALSE) %&gt;%
+	kable_styling() %&gt;%
+	add_header_above(c(&quot; &quot;, &quot;N&quot; = length(N_values)), bold=TRUE) %&gt;%
+	group_rows(&quot;$\\alpha$&quot;, 1, length(alpha_values)) %&gt;%
+	row_spec(0, bold=TRUE) %&gt;%
+	column_spec(1, bold=TRUE)
+							</code></pre>
+							
+							<p>As expected, it is clear that the accuracy of the <em>SeqEM</em> algorithm depends on the reading depth <span class="math inline">\(N\)</span> and the reading error <span class="math inline">\(\alpha\)</span>. More precisely, if <span class="math inline">\(N\)</span> increases and <span class="math inline">\(\alpha\)</span> decreases, the precision increases, and vice versa. 
+							For <span class="math inline">\(\alpha \leq 0.05\)</span> and <span class="math inline">\(n \geq 15\)</span> we measure a precision of <span class="math inline">\(\geq 99\%\)</span>. 
+							On the other hand, if <span class="math inline">\(N\)</span> is too small <span class="math inline">\((\leq 5)\)</span> and <span class="math inline">\(\alpha\)</span> is too large <span class="math inline">\((\geq 0.25)\)</span>, the <em>SeqEM</em> algorithm becomes relatively inefficient. </p>
+							
+							<p>This can also be illustrated graphically.</p>
+							<pre><code class="language-r">
+plot(-1,-1,
+		xlim = c(0,max(alpha_values)), ylim = c(min(accuracy_matrix),max(accuracy_matrix)),
+		xlab = TeX(&#39;$\\alpha$&#39;), ylab = &quot;Accuracy&quot;)
+colors = palette.colors(length(N_values))
+for (i in 1:length(N_values)){
+	lines(rev(alpha_values), rev(accuracy_matrix[,i]), col=colors[i])
+}
+legend(&quot;bottomleft&quot;, legend=N_values, col=colors, title=&quot;N&quot;, lty=1, cex=0.6)
+							</code></pre>
+							<p><img src="images/unnamed-chunk-10-1.png" width="672" /></p>
+							<p>Graphically we can, obviously, see that the algorithm is the most accurate for large values of <span class="math inline">\(N\)</span> and small values of <span class="math inline">\(\alpha\)</span>. An astonishing result, however, is the fact that for <span class="math inline">\(\alpha \geq 0.3\)</span> the <em>SeqEM</em> algorithm is inversely more efficient for smaller values of <span class="math inline">\(N\)</span> than for large values of <span class="math inline">\(N\)</span>.</p>
+							
+							<p>In a second experiment we want to try to conclude on the influence of the choice of the starting values of the parameters in the <em>SeqEM</em> algorithm. For this reason we choose to vary the starting values of 2 of the 3 parameters at the same time (thus 3 cases in total) and to observe the variation in terms of the performance of the algorithm.</p>
+							<pre><code class="language-r">
+S = 1000
+pVV = 0.3
+pRV = 0.2
+alpha = 0.2
+N = 15
+
+alpha_start_values = seq(0.05,0.4,length.out=10)
+pVV_start_values = seq(0.05,0.4,length.out=10)
+pRV_start_values = seq(0.05,0.4,length.out=10)
+
+
+# Variation of alpha_start and pVV_start
+accuracies = c()
+set.seed(1)
+for (alpha_start in alpha_start_values){
+	for (pVV_start in pVV_start_values){
+	# Data simulation
+	data = data_generation(S, pVV, pRV, N, alpha, getData=TRUE)
+	
+	# Implementation of the SeqEM algorithm
+	SeqEM_result = SeqEM(data$X, alpha_start, pVV_start, pRV_start=0.1, N)
+	accuracies = c(accuracies,EM_accuracy(data$Z, SeqEM_result$Z))
+	}
+}
+accuracy_matrix_alpha_pVV = matrix(accuracies,
+							nrow=length(alpha_start_values),
+							ncol=length(pVV_start_values),
+							byrow=TRUE,
+							dimnames = list(alpha_start_values, pVV_start_values))
+
+persp3D(alpha_start_values,pVV_start_values,accuracy_matrix_alpha_pVV,
+		theta=20, phi=20, expand=0.5,
+		xlab=&quot;alpha_start&quot;, ylab=&quot;pVV_start&quot;, zlab=&quot;Accuracy&quot;)
+							</code></pre>
+							<p><img src="images/unnamed-chunk-11-1.png" width="672" /></p>
+							<pre><code class="language-r">
+# Variation of alpha_start and pRV_start
+accuracies = c()
+set.seed(1)
+for (alpha_start in alpha_start_values){
+	for (pRV_start in pRV_start_values){
+	# Simulation de données
+	data = data_generation(S, pVV, pRV, N, alpha, getData=TRUE)
+	
+	# Implementation of the SeqEM algorithm
+	SeqEM_result = SeqEM(data$X, alpha_start, pRV_start=0.1, pRV_start, N)
+	accuracies = c(accuracies,EM_accuracy(data$Z, SeqEM_result$Z))
+	}
+}
+accuracy_matrix_alpha_pRV = matrix(accuracies,
+							nrow=length(alpha_start_values),
+							ncol=length(pRV_start_values),
+							byrow=TRUE,
+							dimnames = list(alpha_start_values, pRV_start_values))
+
+persp3D(alpha_start_values,pRV_start_values,accuracy_matrix_alpha_pRV,
+		theta=20, phi=20, expand=0.5,
+		xlab=&quot;alpha_start&quot;, ylab=&quot;pRV_start&quot;, zlab=&quot;Accuracy&quot;)
+							</code></pre>
+							<p><img src="images/unnamed-chunk-11-2.png" width="672" /></p>
+							<pre><code class="language-r">
+# Variation of pVV_start and pRV_start
+accuracies = c()
+set.seed(1)
+for (pVV_start in pVV_start_values){
+	for (pRV_start in pRV_start_values){
+	# Simulation de données
+	data = data_generation(S, pVV, pRV, N, alpha, getData=TRUE)
+	
+	# Implementation dof the SeqEM algorithm
+	SeqEM_result = SeqEM(data$X, alpha_start=0.1, pVV_start, pRV_start, N)
+	accuracies = c(accuracies,EM_accuracy(data$Z, SeqEM_result$Z))
+	}
+}
+accuracy_matrix_pVV_pRV = matrix(accuracies,
+									nrow=length(pVV_start_values),
+							ncol=length(pRV_start_values),
+							byrow=TRUE,
+							dimnames = list(pVV_start_values, pRV_start_values))
+
+persp3D(pVV_start_values,pRV_start_values,accuracy_matrix_pVV_pRV,
+		theta=20, phi=20, expand=0.5,
+		xlab=&quot;pVV_start&quot;, ylab=&quot;pRV_start&quot;, zlab=&quot;Accuracy&quot;)
+							</code></pre>
+							<p><img src="images/unnamed-chunk-11-3.png" width="672" /></p>
+							<p>Graphically, we can clearly see that the choice of the starting value of <span class="math inline">\(\alpha\)</span> has the greatest influence on the performance of the algorithms. The closer the chosen starting value of <span class="math inline">\(\alpha\)</span> is to the true value of <span class="math inline">\(\alpha\)</span> the more accurate the algorithm determines the genotypes. 
+							The choice of starting values for <span class="math inline">\(p_\text{pVV}\)</span> and <span class="math inline">\(p_\text{RV}\)</span> have much less influence on performance and we are not really able to identify a clear link between the choice of starting values for <span class="math inline">\(p_\text{VV}\)</span> and <span class="math inline">\(p_\text{RV}\)</span> and the performance of the <em>SeqEM</em> algorithm.</p>
+							</div>
+							<div id="conclusions-review-perspectives" class="section level2">
+							<h2>Conclusions (review + perspectives)</h2>
+							<p>The idea behind the <em>SeqEM</em> algorithm may indeed be an interesting basis for the development of new genotyping methods or technologies. Its ease of implementation and good comprehensibility are, without doubt, desirable characteristics. On the other hand, it is rather only an introduction to these new methods, because the <em>SeqEM</em> algorithm has some weaknesses that must necessarily be corrected and because the assumptions for the implementation of the algorithm have been extremely simplified in the article. 
+							For example, the hypothesis of independence between individuals, which was very useful in formulating <span class="math inline">\(Q(\theta|\theta_{old})\)</span>, cannot always be satisfied. Since individuals can, for example, be related, one must be very careful when selecting individuals. 
+							Another weakness is the importance of the choice of the starting value of <span class="math inline">\(\alpha\)</span>, which was shown in the last experiment. 
+							Another factor, on which the performance of the <em>SeqEM</em> algorithm is highly dependent, is the read depth <span class="math inline">\(N\)</span> and the true value of <span class="math inline">\(\alpha\)</span>. If <span class="math inline">\(N\)</span> is large enough and <span class="math inline">\(\alpha\)</span> is small enough, the algorithm is able to determine genotypes with high accuracy. On the other hand, for small values of <span class="math inline">\(N\)</span> and large values of <span class="math inline">\(\alpha\)</span> the algorithm has difficulties to properly call the true genotype. 
+							These results lead us to the conclusion that, if we manage to simplify all the hypotheses (which can certainly be difficult in reality), the <em>SeqEM</em> algorithm is a very interesting and easy to apply approach for genotyping. Even if the algorithm has some shortcomings, these are certainly not impossible to solve in the future, so that the <em>SeqEM</em> algorithm may gain popularity. </p>
+							</div>
+							</div>
+							<div id="annexe" class="section level1">
+							<h1>Annexe</h1>
+							
+							<p><span class="math display">\[\begin{equation*}
+							  \begin{cases}
+								\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial \alpha} = 0 \\\\
+								\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial p_\text{VV}} = 0 \\\\
+								\displaystyle \frac{\partial Q(\theta | \theta^{\text{old}})}{\partial p_\text{RV}} = 0
+							  \end{cases}
+							\end{equation*}\]</span></p>
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><font size="2">
+							<span class="math display">\[\begin{equation*} \iff
+							  \begin{cases} 
+								\displaystyle \sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \left[ X_i \frac{-1}{1-\alpha} + (N_i-X_i)\frac{1}{\alpha} \right] + \eta_{\text{RR}}(i)\left[ X_i \frac{1}{\alpha} - (N_i-X_i)\frac{1}{1-\alpha} \right] \right\} = 0 \\\\
+								\sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \frac{1}{p_\text{VV}} - \eta_{\text{RR}}(i) \frac{1}{1-p_\text{VV}-p_\text{RV}} \right\} = 0 \\\\
+								\sum_{i=1}^{S}\left\{ \eta_{\text{RV}}(i) \frac{1}{p_\text{RV}} - \eta_{\text{RR}}(i) \frac{1}{1-p_\text{VV}-p_\text{RV}} \right\} = 0
+							  \end{cases}
+							\end{equation*}\]</span>
+							</font></p>
+							</div>
+							
+							<p>Since the first equation depends only on <span class="math inline">\(\alpha\)</span> and the other two equations depend only on <span class="math inline">\(p_\text{VV}\)</span> and <span class="math inline">\(p_\text{RV}\)</span>, the system of equations can be divided into 2 parts. 
+							We start by solving the first equation:</p>
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><font size="3">
+							<span class="math display">\[\begin{align*}
+							  &amp; \sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \left[ X_i \frac{-1}{1-\alpha} + (N_i-X_i)\frac{1}{\alpha} \right] + \eta_{\text{RR}}(i)\left[ X_i \frac{1}{\alpha} - (N_i-X_i)\frac{1}{1-\alpha} \right] \right\} = 0 \\
+							  \iff &amp; \sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \left[ -\alpha X_i  + (1-\alpha)(N_i-X_i) \right] + \eta_{\text{RR}}(i)\left[(1-\alpha) X_i  - \alpha (N_i-X_i) \right] \right\} = 0 \\
+							  \iff &amp; \sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \left[ N_i - \alpha N_i - X_i \right] + \eta_{\text{RR}}(i)\left[X_i - \alpha N_i \right] \right\} = 0           \\
+							  \iff &amp; \alpha \sum_{i=1}^{S}\left\{ \eta_\text{VV}(i) N_i + \eta_\text{RR}(i) N_i \right\} = \sum_{i=1}^{S} \left\{ \eta_{\text{VV}}(i) \left[ N_i - X_i \right] + \eta_{\text{RR}}(i) X_i \right\} \\
+							  \iff &amp; \boxed{\alpha_{new} = \frac{\displaystyle \sum_{i=1}^{S} \left\{ \eta_{\text{VV}}(i) \left[ N_i - X_i \right] + \eta_{ \text{RR}}(i) X_i \right\}}{\displaystyle \sum_{i=1}^{S}\left\{N_i \left[\eta_\text{VV}(i) + \eta_\text{RR}(i) \right] \right\}}}
+							\end{align*}\]</span>
+							</font></p>
+							</div>
+							<p>We continue by solving the system of equations composed of the two other equations of the initial system.</p>
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><span class="math display">\[\begin{align} 
+							  &amp;\begin{cases} 
+								\sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \frac{1}{p_\text{VV}} - \eta_{\text{RR}}(i) \frac{1}{1-p_\text{VV}-p_\text{RV}} \right\} = 0 \\\\
+								\sum_{i=1}^{S}\left\{ \eta_{\text{RV}}(i) \frac{1}{p_\text{RV}} - \eta_{\text{RR}}(i) \frac{1}{1-p_\text{VV}-p_\text{RV}} \right\} = 0
+							  \end{cases} \nonumber \\
+							  \iff &amp;\begin{cases} 
+								\sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \frac{1}{p_\text{VV}} \right\} = \sum_{i=1}^{S}\left\{ \eta_{\text{RR}}(i) \frac{1}{1-p_\text{VV}-p_\text{RV}} \right\} \\\\
+								\sum_{i=1}^{S}\left\{ \eta_{\text{RV}}(i) \frac{1}{p_\text{RV}} \right\} = \sum_{i=1}^{S}\left\{ \eta_{\text{RR}}(i) \frac{1}{1-p_\text{VV}-p_\text{RV}} \right\}
+							  \end{cases} \label{eq1}
+							\end{align}\]</span></p>
+							<p><span class="math display">\[\begin{align} 
+							  \Longrightarrow &amp; \sum_{i=1}^{S}\left\{ \eta_{\text{VV}}(i) \frac{1}{p_\text{VV}} \right\} = \sum_{i=1}^{S}\left\{ \eta_{\text{RV}}(i) \frac{1}{p_\text{RV}} \right\} \nonumber \\
+							  \iff &amp; p_\text{RV} \sum_{i=1}^{S} \eta_{\text{VV}}(i) = p_\text{VV} \sum_{i=1}^{S} \eta_{\text{RV}}(i) \nonumber \\
+							  \iff &amp; p_\text{RV} = p_\text{VV} \frac{\sum_{i=1}^{S} \eta_{\text{RV}}(i)}{ \sum_{i=1}^{S} \eta_{\text{VV}}(i)} \label{eq2}
+							\end{align}\]</span></p>
+							</div>
+							Using this equality in the first system of equations (1), we find that
+							<div style="overflow-x:auto;overflow-y:hidden">
+							<p><font size="2">
+							<span class="math display">\[\begin{align*} 
+							  &amp; \left[ \sum_{i=1}^{S} \eta_{\text{VV}}(i) \right] \times \frac{1}{p_\text{VV}} = \left[ \sum_{i=1}^{S} \eta_{\text{RR}}(i) \right] \times \frac{1}{1-p_\text{VV}-p_\text{VV} \frac{\sum_{i=1}^{S} \eta_{\text{RV}}(i)}{ \sum_{i=1}^{S} \eta_{\text{VV}}(i)}} \\
+							  \iff &amp; \left[ \sum_{i=1}^{S} \eta_{\text{VV}}(i) \right] \times \left[ 1-p_\text{VV}-p_\text{VV} \frac{\sum_{i=1}^{S} \eta_{\text{RV}}(i)}{ \sum_{i=1}^{S} \eta_{\text{VV}}(i)} \right]  = \left[ \sum_{i=1}^{S} \eta_{\text{RR}}(i) \right] \times p_\text{VV} \\
+							  \iff &amp; p_\text{VV} \times \left[\underbrace{\sum_{i=1}^{S} \eta_{\text{RR}}(i) + \sum_{i=1}^{S} \eta_{\text{VV}}(i) + \sum_{i=1}^{S} \eta_{\text{RV}}(i)}_{S \text{ , car } \eta_{\text{VV}}(i)+\eta_{\text{RV}}(i)+\eta_{\text{RR}}(i)=1} \right] = \sum_{i=1}^{S} \eta_{\text{VV}}(i) \\
+							  \iff &amp; \boxed{p_\text{VV}^{new} = \frac{\displaystyle \sum_{i=1}^{S} \eta_{\text{VV}}(i)}{\displaystyle S}}
+							\end{align*}\]</span>
+							</font></p>
+							</div>
+							<p>Using this result in the second system of equations (2), we find that
+							<span class="math display">\[\boxed{p_\text{RV}^{new} = \frac{\displaystyle \sum_{i=1}^{S} \eta_{\text{RV}}(i)}{\displaystyle S}}\]</span></p>
+							</div>
+	</div>
+					</div>
+				</div>
+
+
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+			<!-- Include the Prism JavaScript file -->
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+			<!-- Include the Prism R language definition file -->
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-r.min.js"></script>
+
+
+	</body>
+</html>

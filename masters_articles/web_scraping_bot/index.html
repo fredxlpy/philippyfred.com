@@ -1,0 +1,1334 @@
+<!DOCTYPE HTML>
+<!--
+	Read Only by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Fred Philippy's Website</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../../assets/css/main.css" />
+
+		<script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"> </script>
+		<!-- Include the Prism CSS file -->
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css" rel="stylesheet" />
+	</head>
+
+	<body class="is-preload">
+
+		<!-- Header -->
+		<section id="header">
+			<header>
+				<span class="image avatar"><img src="../../images/avatar.jpg" alt="" /></span>
+				<h1  id="logo"><a href="../../index.html">Fred Philippy</a></h1>
+				<p>PhD candidate at the <a href="https://www.uni.lu/snt-en/">Interdisciplinary Centre for Security, Reliability and Trust</a> (SnT), <a href="https://www.uni.lu/en/">University of Luxembourg</a><br /> <br />
+				Data Scientist at <a href="https://zortify.com/">Zortify</a> </p>
+			</header>
+
+			<nav id="nav">
+				<ul>
+					<li><a href="../../index.html#one" class="active">About Me</a></li>
+					<li><a href="../../index.html#two">My Papers</a></li>
+					<li><a href="../../index.html#three">Other Activities</a></li>
+					<li><a href="../../index.html#four">Small Projects</a></li>
+
+				</ul>
+			</nav>
+
+			<footer>
+				<ul class="icons">
+					<li><a href="mailto:fred@philippy.lu" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
+					<li><a href="https://www.linkedin.com/in/fred-philippy/" class="icon brands fa-linkedin"><span class="label">Linkedin</span></a></li>
+					<li><a href="https://scholar.google.com/citations?user=oPd-YpYAAAAJ&hl=en" class="icon sharp fa-graduation-cap"><span class="label">Google Scholar</span></a></li>
+					<li><a href="https://orcid.org/0000-0001-5842-4285" class="icon brands fa-orcid"><span class="label">Orcid</span></a></li>
+					<li><a href="https://github.com/fredxlpy" class="icon brands fa-github"><span class="label">Github</span></a></li>
+					<li><a href="https://www.semanticscholar.org/author/Fred-Philippy/2089836413" class="icon solid fa-book-open"><span class="label">Semantic Scholar</span></a></li>
+				</ul>
+			</footer>
+
+			</section>
+			
+				<div id="wrapper">
+						
+					<div class="image main" data-position="center">
+						<img src="../../images/banner.jpg" alt="" />
+					</div>
+					
+					<div id="main" class="container">
+
+						<h2>Web Scraping Bot in Python</h2>
+
+						<div id="bootstrapping" class="section level1">
+						<p>The web scraper will be used to extract informations about real estate listings from the Luxembourgish real estate website <a href="https://www.athome.lu/">athome.lu</a>.</p>
+						<pre><code class="language-python">
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import numpy as np
+            </code></pre>
+						<p>We start by extracting the number of available pages containing real estate listings. In general, each page consists of 20 listings. However, we do not choose to extract data from all available pages (due to running time limitation), but rather from the first 5 pages.</p>
+						<pre><code class="language-python">
+URL = &#39;https://www.athome.lu/en/srp/?tr=buy&amp;sort=date_desc&amp;q=faee1a4a&amp;loc=L2-luxembourg&#39;
+page = requests.get(URL)
+
+soup = BeautifulSoup(page.content, &#39;html.parser&#39;)
+
+# Get number of pages on website
+last_page = 5 # We choose to use only the first 5 pages
+
+#last_page = int(soup.find(&#39;a&#39;,class_=&#39;page last&#39;).text) # --&gt; total number of pages available
+            </code></pre>
+						<p>As every single listing is associated to a an individual URL, we create a list containing all the URLs in question.</p>
+						<pre><code class="language-python">
+urls = []  # list with collected urls (each url represents a listing)
+i=0 # computation progress counter
+for pagenumber in range(last_page):
+  URL = &#39;https://www.athome.lu/en/srp/?tr=buy&amp;sort=date_desc&amp;q=faee1a4a&amp;loc=L2-luxembourg&amp;page=&#39; + str(pagenumber)
+  page = requests.get(URL)
+  soup = BeautifulSoup(page.content, &#39;html.parser&#39;)
+  results = soup.find_all(&#39;article&#39;, class_=[&#39;standard&#39;, &#39;silver&#39;, &#39;gold&#39;, &#39;platinum&#39;])
+  for result in results:
+      urls.append(&#39;https://www.athome.lu&#39; + result.find(&#39;link&#39;, itemprop=&#39;url&#39;)[&#39;href&#39;])
+  
+  # Display computation progress
+  i +=1
+  print(str(100*i/last_page) + &#39; %&#39;)
+  
+  # Return number of collected urls
+  if pagenumber == (last_page-1):
+    print(str(len(urls)) + &quot; URLs have been collected&quot;)
+    
+## 20.0 %
+## 40.0 %
+## 60.0 %
+## 80.0 %
+## 100.0 %
+## 100 URLs have been collected
+            </code></pre>
+						<p>Then, we loop through the entire URL list while extracting all the available data for every listing.</p>
+						<pre><code class="language-python">
+Houses = pd.DataFrame()
+i=0 # computation progress counter
+url_non_ex = 0 # counter for non existent urls
+for url in urls[:len(urls)]:
+  try:
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, &#39;html.parser&#39;)
+
+    # Find all characteristics blocks for a house
+    features = soup.find_all(&#39;li&#39;, class_=&#39;feature-bloc-content-specification-content&#39;)
+
+    names=[]
+    data=[]
+    # For every feature of the house find name of feature (&#39;names&#39;) and the corresponding value (&#39;data&#39;)
+    for feature in features:
+      names.append(feature.find(&#39;div&#39;, class_=&#39;feature-bloc-content-specification-content-name&#39;).text)
+      data.append(feature.find(&#39;div&#39;, class_=&#39;feature-bloc-content-specification-content-response&#39;).text)
+      
+    # Add type of house and location to the feature list
+    names.extend([&#39;genre&#39;, &#39;Lieu&#39;])
+    data.append(soup.find(&#39;h1&#39;, class_=&#39;KeyInfoBlockStyle__PdpTitle-sc-1o1h56e-2 hWEtva&#39;).text.split()[0])
+    address = soup.find(&#39;div&#39;, class_=&#39;block-localisation-address&#39;).text
+    lieu = address[address.find(&#39;-&#39;)+2:]
+    data.append(lieu)
+
+    House = dict(zip(names, data))
+
+    Houses = Houses.append(House, ignore_index=True)
+
+    i +=1
+    print(str(round(100*i/len(urls),2)) + &#39; %&#39;)
+
+  except AttributeError:
+    url_non_ex +=1 # number of non-existent urls
+## 1.0 %
+## 2.0 %
+## 3.0 %
+## 4.0 %
+## 5.0 %
+## 6.0 %
+## 7.0 %
+## 8.0 %
+## 9.0 %
+## 10.0 %
+## 11.0 %
+## 12.0 %
+## 13.0 %
+## 14.0 %
+## 15.0 %
+## 16.0 %
+## 17.0 %
+## 18.0 %
+## 19.0 %
+## 20.0 %
+## 21.0 %
+## 22.0 %
+## 23.0 %
+## 24.0 %
+## 25.0 %
+## 26.0 %
+## 27.0 %
+## 28.0 %
+## 29.0 %
+## 30.0 %
+## 31.0 %
+## 32.0 %
+## 33.0 %
+## 34.0 %
+## 35.0 %
+## 36.0 %
+## 37.0 %
+## 38.0 %
+## 39.0 %
+## 40.0 %
+## 41.0 %
+## 42.0 %
+## 43.0 %
+## 44.0 %
+## 45.0 %
+## 46.0 %
+## 47.0 %
+## 48.0 %
+## 49.0 %
+## 50.0 %
+## 51.0 %
+## 52.0 %
+## 53.0 %
+## 54.0 %
+## 55.0 %
+## 56.0 %
+## 57.0 %
+## 58.0 %
+## 59.0 %
+## 60.0 %
+## 61.0 %
+## 62.0 %
+## 63.0 %
+## 64.0 %
+## 65.0 %
+## 66.0 %
+## 67.0 %
+## 68.0 %
+## 69.0 %
+## 70.0 %
+## 71.0 %
+## 72.0 %
+## 73.0 %
+## 74.0 %
+## 75.0 %
+## 76.0 %
+## 77.0 %
+## 78.0 %
+## 79.0 %
+## 80.0 %
+## 81.0 %
+## 82.0 %
+## 83.0 %
+## 84.0 %
+## 85.0 %
+## 86.0 %
+## 87.0 %
+## 88.0 %
+## 89.0 %
+## 90.0 %
+## 91.0 %
+## 92.0 %
+## 93.0 %
+## 94.0 %
+## 95.0 %
+## 96.0 %
+## 97.0 %
+## 98.0 %
+## 99.0 %
+## 100.0 %  
+            </code></pre>
+						<p>As an example, we display the first 20 rows of the created Dataframe.</p>
+						<table style="overflow-x: auto; display: block;">
+						<colgroup>
+						<col width="1%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="3%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="4%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="3%" />
+						<col width="1%" />
+						<col width="0%" />
+						<col width="1%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="2%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="0%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="3%" />
+						<col width="5%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="2%" />
+						<col width="3%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="1%" />
+						<col width="2%" />
+						<col width="2%" />
+						<col width="1%" />
+						<col width="2%" />
+						</colgroup>
+						<thead>
+						<tr class="header">
+						<th align="left">Balcony</th>
+						<th align="left">Basement</th>
+						<th align="left">Bathroom</th>
+						<th align="left">Closed parking space</th>
+						<th align="left">Energy class</th>
+						<th align="left">Laundry</th>
+						<th align="left">Lieu</th>
+						<th align="left">Livable surface</th>
+						<th align="left">Living room</th>
+						<th align="left">Number of bedrooms</th>
+						<th align="left">Open kitchen</th>
+						<th align="left">Pump heating</th>
+						<th align="left">Renovation year</th>
+						<th align="left">Sale price</th>
+						<th align="left">Thermal insulation class</th>
+						<th align="left">genre</th>
+						<th align="left">Attic</th>
+						<th align="left">Bathooms</th>
+						<th align="left">Fitted kitchen</th>
+						<th align="left">Garden</th>
+						<th align="left">Gas heating</th>
+						<th align="left">Land</th>
+						<th align="left">Open parking space</th>
+						<th align="left">Separate kitchen</th>
+						<th align="left">Terrace</th>
+						<th align="left">Lift</th>
+						<th align="left">Pets accepted</th>
+						<th align="left">Restroom</th>
+						<th align="left">Shower rooms</th>
+						<th align="left">Year of construction</th>
+						<th align="left">Acces for mobility-impared people</th>
+						<th align="left">Shower room</th>
+						<th align="left">Availability</th>
+						<th align="left">Property’s floor</th>
+						<th align="left">Indoor parking space(s)</th>
+						<th align="left">Number of rooms</th>
+						<th align="left">Renovated</th>
+						<th align="left">Monthly charges</th>
+						<th align="left">Fireplace</th>
+						<th align="left">Fuel heating</th>
+						<th align="left">Parquet</th>
+						<th align="left">Solar panels</th>
+						<th align="left">Convertible attic</th>
+						<th align="left">Electric heating</th>
+						<th align="left">Wine cellar</th>
+						<th align="left">Converted attic</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr class="odd">
+						<td align="left">4.87 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">1</td>
+						<td align="left">2</td>
+						<td align="left">A</td>
+						<td align="left">Yes</td>
+						<td align="left">Wiltz</td>
+						<td align="left">94.21 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">2</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">2018</td>
+						<td align="left">449,435 €</td>
+						<td align="left">B</td>
+						<td align="left">Apartment</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">G</td>
+						<td align="left">/</td>
+						<td align="left">Biwer</td>
+						<td align="left">120 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">4</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">984,000 €</td>
+						<td align="left">G</td>
+						<td align="left">House</td>
+						<td align="left">Yes</td>
+						<td align="left">2</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">3 ares</td>
+						<td align="left">2</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">NC</td>
+						<td align="left">Yes</td>
+						<td align="left">Bissen</td>
+						<td align="left">210 m²</td>
+						<td align="left">/</td>
+						<td align="left">4</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">1,050,324 €</td>
+						<td align="left">NC</td>
+						<td align="left">House</td>
+						<td align="left">Yes</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">4.76 ares</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">36.62 m²</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">1</td>
+						<td align="left">B</td>
+						<td align="left">Yes</td>
+						<td align="left">Capellen</td>
+						<td align="left">204 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">4</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2019</td>
+						<td align="left">1,875,000 €</td>
+						<td align="left">B</td>
+						<td align="left">Detached</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">5.09 ares</td>
+						<td align="left">3</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">1</td>
+						<td align="left">2</td>
+						<td align="left">2013</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">2</td>
+						<td align="left">H</td>
+						<td align="left">Yes</td>
+						<td align="left">Dudelange</td>
+						<td align="left">150 m²</td>
+						<td align="left">/</td>
+						<td align="left">4</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2015</td>
+						<td align="left">1,035,000 €</td>
+						<td align="left">I</td>
+						<td align="left">House</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">3.35 ares</td>
+						<td align="left">2</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1954</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">A</td>
+						<td align="left">Yes</td>
+						<td align="left">07 rue des Romains - Strassen</td>
+						<td align="left">118.68 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">1,691,250 €</td>
+						<td align="left">A</td>
+						<td align="left">Apartment</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">70 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2021</td>
+						<td align="left">Yes</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">A</td>
+						<td align="left">Yes</td>
+						<td align="left">07 rue des Romains - Strassen</td>
+						<td align="left">57.89 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">879,835 €</td>
+						<td align="left">A</td>
+						<td align="left">Apartment</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">44 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">2021</td>
+						<td align="left">Yes</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">A</td>
+						<td align="left">Yes</td>
+						<td align="left">07 rue des Romains - Strassen</td>
+						<td align="left">101.31 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1,341,010 €</td>
+						<td align="left">A</td>
+						<td align="left">Apartment</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">20.4 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">2021</td>
+						<td align="left">Yes</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">B</td>
+						<td align="left">Yes</td>
+						<td align="left">Capellen</td>
+						<td align="left">203 m²</td>
+						<td align="left">/</td>
+						<td align="left">4</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">1,875,000 €</td>
+						<td align="left">B</td>
+						<td align="left">House</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">350 m²</td>
+						<td align="left">/</td>
+						<td align="left">5.09 ares</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">NC</td>
+						<td align="left">/</td>
+						<td align="left">Luxembourg</td>
+						<td align="left">14 m²</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">76,500 €</td>
+						<td align="left">NC</td>
+						<td align="left">Indoor</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">To be agreed</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">A</td>
+						<td align="left">/</td>
+						<td align="left">Wiltz</td>
+						<td align="left">264 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">4</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">799,900 €</td>
+						<td align="left">B</td>
+						<td align="left">House</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">3.23 ares</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">A</td>
+						<td align="left">/</td>
+						<td align="left">Wiltz</td>
+						<td align="left">263.83 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">4</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">2018</td>
+						<td align="left">799,900 €</td>
+						<td align="left">B</td>
+						<td align="left">House</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">3.23 ares</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">G</td>
+						<td align="left">/</td>
+						<td align="left">Ehlerange</td>
+						<td align="left">70 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">2</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">490,000 €</td>
+						<td align="left">F</td>
+						<td align="left">Apartment</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1967</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Ã€ convenir</td>
+						<td align="left">2</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">A</td>
+						<td align="left">/</td>
+						<td align="left">Wiltz</td>
+						<td align="left">263.83 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">4</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">795,350 €</td>
+						<td align="left">B</td>
+						<td align="left">House</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">3.11 ares</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">E</td>
+						<td align="left">Yes</td>
+						<td align="left">Rumelange</td>
+						<td align="left">101 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">2</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">575,000 €</td>
+						<td align="left">E</td>
+						<td align="left">Duplex</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">/</td>
+						<td align="left">1995</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">To be agreed</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">A</td>
+						<td align="left">/</td>
+						<td align="left">Wiltz</td>
+						<td align="left">263 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">4</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">2015</td>
+						<td align="left">782,900 €</td>
+						<td align="left">B</td>
+						<td align="left">House</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">2.74 ares</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">A</td>
+						<td align="left">/</td>
+						<td align="left">Wiltz</td>
+						<td align="left">263 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">4</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">2018</td>
+						<td align="left">766,900 €</td>
+						<td align="left">B</td>
+						<td align="left">House</td>
+						<td align="left">/</td>
+						<td align="left">3</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">2.56 ares</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">NC</td>
+						<td align="left">/</td>
+						<td align="left">Luxembourg</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">885,000 €</td>
+						<td align="left">NC</td>
+						<td align="left">Detached</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">3.93 ares</td>
+						<td align="left">2</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1947</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">immédiate</td>
+						<td align="left">0</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="odd">
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">NC</td>
+						<td align="left">/</td>
+						<td align="left">Bettembourg</td>
+						<td align="left">90 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">2</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">1 €</td>
+						<td align="left">NC</td>
+						<td align="left">Apartment</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Sur plan</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">To be agreed</td>
+						<td align="left">2</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						<tr class="even">
+						<td align="left">10 m²</td>
+						<td align="left">Yes</td>
+						<td align="left">1</td>
+						<td align="left">1</td>
+						<td align="left">E</td>
+						<td align="left">Yes</td>
+						<td align="left">Steinsel</td>
+						<td align="left">120 m²</td>
+						<td align="left">/</td>
+						<td align="left">2</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">2018</td>
+						<td align="left">895,000 €</td>
+						<td align="left">NC</td>
+						<td align="left">Duplex</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">2</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">To be agreed</td>
+						<td align="left">/</td>
+						<td align="left">1</td>
+						<td align="left">8</td>
+						<td align="left">Yes</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						<td align="left">/</td>
+						</tr>
+						</tbody>
+						</table>
+						<p>The collected data could then be used to carry out statistical analysis on the current real estate market in Luxembourg.</p>
+          </div>
+					</div>
+				</div>
+
+
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+			<!-- Include the Prism JavaScript file -->
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+			<!-- Include the Prism R language definition file -->
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
+
+
+	</body>
+</html>

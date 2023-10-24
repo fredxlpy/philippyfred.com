@@ -1,0 +1,602 @@
+<!DOCTYPE HTML>
+<!--
+	Read Only by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Fred Philippy's Website</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../../assets/css/main.css" />
+
+		<script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"> </script>
+		<!-- Include the Prism CSS file -->
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css" rel="stylesheet" />
+	</head>
+
+	<body class="is-preload">
+
+		<!-- Header -->
+		<section id="header">
+			<header>
+				<span class="image avatar"><img src="../../images/avatar.jpg" alt="" /></span>
+				<h1  id="logo"><a href="../../index.html">Fred Philippy</a></h1>
+				<p>PhD candidate at the <a href="https://www.uni.lu/snt-en/">Interdisciplinary Centre for Security, Reliability and Trust</a> (SnT), <a href="https://www.uni.lu/en/">University of Luxembourg</a><br /> <br />
+				Data Scientist at <a href="https://zortify.com/">Zortify</a> </p>
+			</header>
+
+			<nav id="nav">
+				<ul>
+					<li><a href="../../index.html#one" class="active">About Me</a></li>
+					<li><a href="../../index.html#two">My Papers</a></li>
+					<li><a href="../../index.html#three">Other Activities</a></li>
+					<li><a href="../../index.html#four">Small Projects</a></li>
+
+				</ul>
+			</nav>
+
+			<footer>
+				<ul class="icons">
+					<li><a href="mailto:fred@philippy.lu" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
+					<li><a href="https://www.linkedin.com/in/fred-philippy/" class="icon brands fa-linkedin"><span class="label">Linkedin</span></a></li>
+					<li><a href="https://scholar.google.com/citations?user=oPd-YpYAAAAJ&hl=en" class="icon sharp fa-graduation-cap"><span class="label">Google Scholar</span></a></li>
+					<li><a href="https://orcid.org/0000-0001-5842-4285" class="icon brands fa-orcid"><span class="label">Orcid</span></a></li>
+					<li><a href="https://github.com/fredxlpy" class="icon brands fa-github"><span class="label">Github</span></a></li>
+					<li><a href="https://www.semanticscholar.org/author/Fred-Philippy/2089836413" class="icon solid fa-book-open"><span class="label">Semantic Scholar</span></a></li>
+				</ul>
+			</footer>
+
+			</section>
+			
+				<div id="wrapper">
+						
+					<div class="image main" data-position="center">
+						<img src="../../images/banner.jpg" alt="" />
+					</div>
+					
+					<div id="main" class="container">
+
+						<h2>Constructing a Neural Network by Hand</h2>
+
+							<div id="data-simulation" class="section level1">
+								<h1>Data simulation</h1>
+								<p>We have the following data simulation procedure: </p>
+								<p>We start by choosing the number of points for each class (<span class="math inline">\(N=100\)</span>) as well as the number of classes (<span class="math inline">\(K=2\)</span>). So, we have <span class="math inline">\(N * K = 200\)</span> points. We also choose the data dimension <span class="math inline">\(p\)</span>. For our example we choose <span class="math inline">\(p=2\)</span>, which means that the points are in <span class="math inline">\(\mathbb{R}^2\)</span> and that the coordinates of such a point are represented by a vector of length 2.</p>
+								<pre><code class="language-r">
+N = 100 # number of points by class
+p = 2   # data dimension
+K = 2   # number of classes
+								</code></pre>
+								We define the following random variables:
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[\begin{align*}
+								X^{(0)}_1 &amp;\sim 0.3 - 2 \times r \times \cos(\theta) + \mathcal{N}(0,0.02) \\
+								X^{(0)}_2 &amp;\sim r \times \sin(\theta) + \mathcal{N}(0,0.02) \\
+								X^{(1)}_1 &amp;\sim -0.3 + 2 \times r \times \cos(\theta) + \mathcal{N}(0,0.02) \\
+								X^{(1)}_2 &amp;\sim -0.5 \times r \times \sin(\theta) + \mathcal{N}(0,0.02)
+								\end{align*}\]</span></p>
+								</div>
+								<p>where <span class="math inline">\(\theta \sim \mathcal{U} \left( -\frac{\pi}{2},\frac{\pi}{2} \right)\)</span> </p>
+								Let <span class="math inline">\(x^{(i)}=\left(x^{(i)}_1,x^{(i)}_2\right)\)</span> be a point in <span class="math inline">\(\mathbb{R}^2\)</span> pour <span class="math inline">\(i = 1,\ldots,N*K\)</span>.
+
+								This is repeated for our <span class="math inline">\(N \times K\)</span> points and each point is associated to <span class="math inline">\(y^{(i)} \in \{0.1\}\)</span> which indicates the class in which <span class="math inline">\(x\)</span> is located. 
+
+								We then have
+								<span class="math inline">\(x = \begin{pmatrix} x^{(1)} \\ \vdots \\ x^{(N*K)} \end{pmatrix} = \begin{pmatrix} x_1^{(1)} &amp; x_2^{(1)} \\ \vdots &amp; \vdots \\ x_1^{(N*K)} &amp; x_2^{(N*K)} \end{pmatrix} \;\)</span>
+								and
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math inline">\(\; y^{(i)} = \begin{cases} y^{(i)}=0 &amp;\text{ si } x^{(i)} \in \mathcal{C}_0 \\ y^{(i)}=1 &amp;\text{ si } x^{(i)} \in \mathcal{C}_1 \end{cases} \quad , \; i=1,\ldots,2N\)</span>.</p>
+								</div>
+								<pre><code class="language-r">
+X = matrix(0,N*K,p) # matrix containing the coordinates of the N*K points
+r = 0.5 # radius
+t = runif(N,-pi/2,pi/2) # theta
+X[1:N,1] = 0.3-2*r*cos(t)+ rnorm(N,0,0.02) 
+X[1:N,2] = r*sin(t) + rnorm(N,0,0.02)
+t = runif(N,-pi/2,pi/2) # theta
+X[N+1:N,1] = -.3+2*r*cos(t)+ rnorm(N,0,0.02) 
+X[N+1:N,2] = -0.5+r*sin(t) + rnorm(N,0,0.02)
+y = c(rep(0,N),rep(1,N)) # class labels
+dataclassif = data.frame(x1=X[,1],x2=X[,2],y=y)
+
+# Transformation of the vector y for further steps
+y = as.numeric(unlist(dataclassif[3]))
+								</code></pre>
+								<pre><code class="language-r">
+# Plot data
+ggplot(data=dataclassif, mapping=aes(x=x1,y=x2, color=factor(y))) +
+geom_point() +
+scale_colour_discrete(&quot;Class&quot;)
+								</code></pre>
+								<p><img src="images/unnamed-chunk-3-1.png" width="672" /></p>
+								<div id="complete-network-function-hatyxtheta" class="section level2">
+								<h2>Complete network function <span class="math inline">\(\hat{y}(x,\theta)\)</span></h2>
+								<p>We have 
+								<span class="math inline">\(W^{[1]} = \begin{bmatrix} w_{1 1}^{[1]} &amp; w_{1 2}^{[1]}\\ \vdots &amp; \vdots\\ w_{d 1}^{[1]} &amp; w_{d 2}^{[1]} \end{bmatrix} \quad ; \quad\)</span>
+								<span class="math inline">\(b^{[1]} = \begin{bmatrix} b_1^{[1]}\\ \vdots\\ b_d^{[1]} \end{bmatrix} \quad ; \quad\)</span>
+								<span class="math inline">\(W^{[2]} = \begin{bmatrix} w_1^{[2]} &amp; \dots &amp; w_d^{[2]} \end{bmatrix} \quad ; \quad\)</span>
+								<span class="math inline">\(b^{[2]} \in \mathbb{R}\)</span></p>
+								<p>We note <span class="math inline">\(\theta = \left(W^{[1]}, b^{[1]}, W^{[2]}, b^{[2]} \right)\)</span>. 
+								</p>
+								<p>We have <span class="math inline">\(x=(x_1,x_2) \in \mathbb{R}^2\)</span>. 
+								</p>
+								We therefore find
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[\begin{align*}
+								\hat{y}(x,\theta) &amp;= \sigma^2\left(Z^{[2]} \right) \\
+								&amp;= \sigma^2\left(W^{[2]} \times A^{[1]} + b^{[2]} \right) \\
+								&amp;= \sigma^2\left(W^{[2]} \times g\left(Z^{[1]} \right) + b^{[2]} \right) \\
+								&amp;= \sigma^2\left(W^{[2]} \times g\left(W^{[1]}x + b^{[1]} \right) + b^{[2]} \right) \\
+								&amp;= \sigma^2 \left( \sum_{i=1}^{d}w_i^{[2]}g\left(w_{i 1}^{[1]}x_1 + w_{i 2}^{[1]}x_2 + b_i^{[1]}\right) + b^{[2]}\right)
+								\end{align*}\]</span></p>
+								</div>
+								</div>
+								</div>
+								<div id="partial-derivatives-of-mathcallcdot" class="section level1">
+								<h1>Partial derivatives of <span class="math inline">\(\mathcal{L}(\cdot)\)</span></h1>
+								We look for the parameters <span class="math inline">\(\theta=\left(W^{[1]}, b^{[1]}, W^{[2]}, b^{[2]}\right)\)</span> which minimize the crossentropy loss function
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[ \mathcal{L}(\theta)=-\sum_{i=1}^{M} \left[y^{(m)} \log \left(\hat{y}\left(x^{(m)}, \theta\right) \right) + \left(1-y^{(m)}\right) \log \left(1-\hat{y}\left(x^{(m)}, \theta\right)\right) \right] \]</span></p>
+								</div>
+								<p>However, as we minimize the loss function by gradient descent, we first need to compute the gradients.</p>
+
+								<div class="remark">
+								<span class="remark"><em>Remark</em> (Derivative of sigma). </span> We have <span class="math inline">\(\sigma(z) = \frac{1}{1+e^{-z}}\)</span>. 
+								We therefore find that
+								<span class="math display">\[\begin{align*}
+								\frac{\partial \sigma}{\partial z}(z) &amp;= \frac{e^{-z}}{(1+e^{-z})^2} \\
+								&amp;= \frac{1}{1+e^{-z}} \times \frac{e^{-z}}{1+e^{-z}} \\
+								&amp;= \frac{1}{1+e^{-z}} \times \left(1-\frac{1}{1+e^{-z}} \right) \\
+								&amp;= \sigma \times (1-\sigma)
+								\end{align*}\]</span>
+								</div>
+
+								<div id="gradients" class="section level2">
+								<h2>Gradients</h2>
+								We note <span class="math inline">\(\hat{y}[m]=\hat{y}\left(x^{(m)}, W^{[1]}, b^{[1]}, W^{[2]}, b^{[2]}\right)\)</span>
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[\begin{align*}
+								\mathcal{L}(\theta) &amp;=-\sum_{i=1}^{M} \left[y^{(m)} \log \left(y[m] \right) + \left(1-y^{(m)}\right) \log \left(1-y[m]\right) \right]  \\
+								\bullet \; y[m] &amp;=\sigma\left(Z_m^{[2]}\right) = \frac{1}{1 + e^{-Z_m^{[2]}}} \\
+								\bullet \;\; Z_m^{[2]} &amp;=\sum_{i=1}^{d}w_i^{[2]} A_{i m}^{[1]} + b^{[2]}  \\
+								\bullet \; A_{i m}^{[1]} &amp;=g \left(Z_{i m}^{[1]}\right) \\
+								\bullet \; Z_{i m}^{[1]} &amp;=w_{i 1}^{[1]} x_1^{(m)} + w_{i 2}^{[1]} x_2^{(m)} + b_{i}^{[1]}
+								\end{align*}\]</span></p>
+								</div>
+								<span class="math display">\[\begin{align*}
+								\frac{\partial \mathcal{L}}{\partial \hat{y}[m]} &amp;= \frac{1-y^{(m)}}{1-\hat{y}[m]} - \frac{y^{(m)}}{\hat{y}[m]} \\&amp;
+								= \frac{\hat{y}[m] - y^{(m)}}{\hat{y}[m](1-\hat{y}[m])}
+								\end{align*}\]</span></p>
+								<p>Followingly, the gradient with respect to <span class="math inline">\(y[m]\)</span> is given by <span class="math inline">\(\boxed{\nabla_{y}\mathcal{L} = \frac{y_{pred} - y}{y_{pred}(1-y_{pred})}}\)</span>.</p>
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[\begin{align*}
+								\frac{\partial \mathcal{L}}{\partial Z_m^{[2]}} &amp;= \frac{\partial \mathcal{L}}{\partial \hat{y}[m]} \frac{\partial \hat{y}[m]}{\partial Z_m^{[2]}} \\&amp;
+								= \frac{\hat{y}[m] - y^{(m)}}{\hat{y}[m](1-\hat{y}[m])} \times \sigma\left(Z_m^{[2]}\right) \times \left(1-\sigma\left(Z_m^{[2]}\right)\right)
+								\end{align*}\]</span></p>
+								</div>
+								We have
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math inline">\(\boxed{\nabla_{Z^{[2]}} \mathcal{L} = \nabla_{y} \mathcal{L} * \sigma\left(Z^{[2]}\right)*\left(\mathbf{1}-\sigma\left(Z^{[2]}\right)\right)}\)</span></p>
+								</div>
+
+								<p>where <span class="math inline">\(\mathbf{1}\)</span> is a matrix of the same size where all coefficients are equal to 1.</p>
+								<span class="math display">\[\begin{align*}
+								\frac{\partial \mathcal{L}}{\partial W_i^{[2]}} &amp;= \sum_{m=1}^{M} \frac{\partial \mathcal{L}}{\partial Z_m^{[2]}} \frac{\partial Z_m^{[2]}}{\partial W_i^{[2]}} \\
+								&amp;= \sum_{m=1}^{M} \frac{\hat{y}[m] - y^{(m)}}{\hat{y}[m](1-\hat{y}[m])} \times \sigma\left(Z_m^{[2]}\right) \times \left(1-\sigma\left(Z_m^{[2]}\right)\right) \times A_{i m}^{[1]}
+								\end{align*}\]</span></p>
+								<p>We have <span class="math inline">\(\boxed{\nabla_{W^{[2]}} \mathcal{L} = \nabla_{Z^{[2]}} \mathcal{L} \times \left(A^{[1]}\right)&#39;}\)</span></p>
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[\begin{align*}
+								\frac{\partial \mathcal{L}}{\partial b^{[2]}} &amp;= \sum_{m=1}^{M} \frac{\partial \mathcal{L}}{\partial Z_m^{[2]}} \frac{\partial Z_m^{[2]}}{\partial b^{[2]}} \\
+								&amp;= \sum_{m=1}^{M} \frac{\hat{y}[m] - y^{(m)}}{\hat{y}[m](1-\hat{y}[m])} \times \sigma\left(Z_m^{[2]}\right) \times \left(1-\sigma\left(Z_m^{[2]}\right)\right)
+								\end{align*}\]</span></p>
+								</div>
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[\begin{align*}
+								\frac{\partial \mathcal{L}}{\partial A_{i m}^{[1]}} &amp;= \frac{\partial \mathcal{L}}{\partial Z_m^{[2]}} \frac{\partial Z_m^{[2]}}{\partial A_{i m}^{[1]}} \\
+								&amp;= \frac{\hat{y}[m] - y^{(m)}}{\hat{y}[m](1-\hat{y}[m])} \times \sigma\left(Z_m^{[2]}\right) \times \left(1-\sigma\left(Z_m^{[2]}\right)\right) \times W_i^{[2]}
+								\end{align*}\]</span></p>
+								</div>
+								<p>We find <span class="math inline">\(\boxed{\nabla_{A^{[1]}} \mathcal{L} = \left(W^{[2]}\right)&#39; \nabla_{Z^{[2]}} \mathcal{L}}\)</span></p>
+								<strong>g)</strong> 
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[\begin{align*}
+								\frac{\partial \mathcal{L}}{\partial Z_{i m}^{[1]}} &amp;= \frac{\partial \mathcal{L}}{\partial A_{i m}^{[1]}} \frac{\partial A_{i m}^{[1]}}{\partial Z_{i m}^{[1]}} \\
+								&amp;= \frac{\hat{y}[m] - y^{(m)}}{\hat{y}[m](1-\hat{y}[m])} \times \sigma\left(Z_m^{[2]}\right) \times \left(1-\sigma\left(Z_m^{[2]}\right)\right) \times W_i^{[2]} \times g&#39;(Z_{i m}^{[1]})
+								\end{align*}\]</span></p>
+								</div>
+								On a
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math inline">\(\boxed{\nabla_{Z^{[1]}} \mathcal{L} = \begin{cases} \nabla_{A^{[1]}} \mathcal{L} \times (\mathbf{1}-A^{[1]}) &amp; \text{ if } g=tanh \\ \nabla_{A^{[1]}} \mathcal{L} \times \mathbb{1}(Z^{[1]}&gt;1) &amp; \text{ if } g=ReLU \end{cases}}\)</span></p>
+								</div>
+								<span class="math display">\[\begin{align*}
+								\frac{\partial \mathcal{L}}{\partial W_{i j}^{[1]}} &amp;= \sum_{m=1}^{M} \frac{\partial \mathcal{L}}{\partial Z_{i m}^{[1]}} \frac{\partial Z_{i m}^{[1]}}{\partial W_{i j}^{[1]}} \\
+								&amp;= \sum_{m=1}^{M} \frac{\hat{y}[m] - y^{(m)}}{\hat{y}[m](1-\hat{y}[m])} \times \sigma\left(Z_m^{[2]}\right) \times \left(1-\sigma\left(Z_m^{[2]}\right)\right) \times g&#39;(Z_{i m}^{[1]}) \times x_j^{(m)}
+								\end{align*}\]</span></p>
+								<p>We find that <span class="math inline">\(\boxed{\nabla_{W^{[1]}} \mathcal{L} = \nabla_{Z^{[1]}} \mathcal{L} \times x}\)</span></p>
+								<div style="overflow-x:auto;overflow-y:hidden">
+								<p><span class="math display">\[\begin{align*}
+								\frac{\partial \mathcal{L}}{\partial b_i^{[1]}} &amp;= \sum_{m=1}^{M} \frac{\partial \mathcal{L}}{\partial Z_{i m}^{[1]}} \frac{\partial Z_{i m}^{[1]}}{\partial b_i^{[1]}} \\
+								&amp;=  \sum_{m=1}^{M} \frac{\hat{y}[m] - y^{(m)}}{\hat{y}[m](1-\hat{y}[m])} \times \sigma\left(Z_m^{[2]}\right) \times \left(1-\sigma\left(Z_m^{[2]}\right)\right) \times W_i^{[2]} \times g&#39;(Z_{i m}^{[1]})
+								\end{align*}\]</span></p>
+								</div>
+								<p><img src="images/unnamed-chunk-5-1.png" width="672" /></p>
+								</div>
+								</div>
+								<div id="training-the-neural-network" class="section level1">
+								<h1>Training the neural network</h1>
+								We initialize the algorithm by choosing starting weights and offset vectors, i.e. choose the starting value of <span class="math inline">\(\theta = \left(W^{[1]}, b^{[1]}, W^{[2]}, b^{[2]} \right)\)</span>. We then use <span class="math inline">\(\theta\)</span> and the <span class="math inline">\(x\)</span> matrix to make a first prediction (which will probably be very bad) using the <span class="math inline">\(\hat{y}(x,\theta)\)</span> function previously defined. These predictions then allow to successively compute all the gradients of the previous section. 
+								Following the principle of gradient descent, the weights and offset vectors are updated as follows (for a step size <span class="math inline">\(\alpha &gt; 0\)</span>):
+
+								<p>We repeat this procedure with the new value of <span class="math inline">\(\theta\)</span> by making a new prediction of <span class="math inline">\(y\)</span> (which will be more accurate for each new iteration). 
+								
+								In order to be able to implement the algorithm in R we start by defining the functions necessary for the training part of the network as well as the loss function.</p>
+								<pre><code class="language-r">
+# tanh activation function (possible choice for g)
+tanh &lt;- function(z){ 
+return((exp(z)-exp(-z))/(exp(z)+exp(-z)))  
+}
+
+# ReLU activation function (possible choice for g)
+ReLU = function(z){
+return(z*(z&gt;0))
+}
+
+# sigmoid activation function
+sigmoid = function(z){
+return(1/(1+exp(-z)))
+}
+
+# Prediction function (depends on the choice of g)
+prediction &lt;- function(x,w1,b1,w2,b2,g){
+Z &lt;- w1 %*% t(x) + b1%*% matrix(1,1,dim(x)[1])
+if (g == &quot;tanh&quot;){
+	return(as.vector(sigmoid(w2 %*% tanh(Z) + b2 * matrix(1,1,dim(x)[1]))))
+}
+if (g == &quot;ReLU&quot;){
+	return(as.vector(sigmoid(w2 %*% ReLU(Z) + b2 * matrix(1,1,dim(x)[1]))))
+}
+}
+
+# Cross entropy loss function
+loss &lt;- function(y_pred,y){
+return(sum(-y*log(y_pred)-(1-y)*log(1-y_pred)))}
+								</code></pre>
+								<p>We continue by coding the network training algorithm. We store this algorithm in a function named <em>NNet</em> which takes as argument the <span class="math inline">\(x^{(m)}\)</span>, the associated class <span class="math inline">\(y^{(m)}\)</span>, the gradient descent step size <span class="math inline">\(\alpha\)</span>, the number of iterations <em>niter</em>, the number <em>d</em> of neurons on the hidden layer, the activation function <em>g</em> and a positive number <em>k</em> defining the interval <span class="math inline">\([-k;k]\)</span> to simulate the initial weights in a more or less random way. </p>
+								<pre><code class="language-r">
+NNet = function(X, y, rate, niter, d, g, k){
+
+# Simulation of starting weights and offset vectors
+w1 = matrix(runif(n=2*d,-k,k),d,2)
+b1 = matrix(runif(n=d,-k,k),d,1)
+w2 = matrix(runif(n=d,-k,k),1,d)
+b2 = runif(n=1,-k,k)
+
+for(iter in 1:niter){
+	
+	y_pred = prediction(X,w1,b1,w2,b2,g)
+	
+	Z1 &lt;- w1 %*% t(X) + b1%*% matrix(1,1,dim(X)[1])
+	if (g==&quot;tanh&quot;) {A1 &lt;- tanh(Z1)}
+	if (g==&quot;ReLU&quot;) {A1 &lt;- ReLU(Z1)}
+	Z2 &lt;- w2 %*% A1 + b2 * matrix(1,1,dim(X)[1])
+	
+	# Calcul des gradients
+	grad_y_pred = (y_pred - y)/(y_pred*(1-y_pred))
+	grad_Z2 = as.vector(sigmoid(Z2)*(1-sigmoid(Z2))) * grad_y_pred
+	grad_w2 = grad_Z2 %*% t(A1)
+	grad_b2 = sum(grad_Z2)
+	grad_A1 = t(w2) %*% grad_Z2
+	if(g==&quot;tanh&quot;){
+	grad_Z1 = grad_A1 * (1-A1^2)}
+	if(g==&quot;ReLU&quot;){
+	grad_Z1 = grad_A1 * (Z1&gt;0)}
+	grad_w1 = grad_Z1 %*% X
+	grad_b1 = rowSums(grad_Z1)
+	
+	# Updating the parameters
+	w2 =w2 - rate*grad_w2
+	b2 =b2 - rate*grad_b2
+	w1 =w1 - rate*grad_w1
+	b1 =b1 - rate*grad_b1
+}
+return(list(y=y_pred,w1=w1,b1=b1,w2=w2,b2=b2))
+}
+								</code></pre>
+								<p>In order to test the algorithm we arbitrarily choose <em>d</em>, <em>g</em>, <span class="math inline">\(\alpha\)</span> and <em>niter</em> and use the data generated at the beginning of the exercise to train the network. 
+								The algorithm is initialized with random initial weights in <span class="math inline">\([-1;1]\)</span>.</p>
+								<pre><code class="language-r">
+# Number of neurones ont the hidden layer
+d = 5
+
+# Activation function g
+g = &quot;tanh&quot;
+
+# Model training
+NNet_model = NNet(X=X, y=y, rate=0.01, niter=10000, d, g, k=1)
+								</code></pre>
+								<p>The values of <span class="math inline">\(W^{[1]}, b^{[1]}, W^{[2]}, b^{[2]}\)</span> are then stored in <em>NNet_model</em>.</p>
+								</div>
+								<div id="plane-segmentation" class="section level1">
+								<h1>Plane segmentation</h1>
+								<p>We define a <em>segmentation</em> function that uses the weights <span class="math inline">\(W^{[1]}\)</span> and <span class="math inline">\(W^{[2]}\)</span> as well as the offset vectors <span class="math inline">\(b^{[1]}\)</span> and <span class="math inline">\(b^{[2]}\)</span> obtained by training the neural network to graphically present the plane segmentation. 
+								In order to do this, the <em>segmentation</em> function calculates the probability of belonging to the class <span class="math inline">\(\mathcal{C}_0\)</span>, using the neural network and the weights previously determined during the training phase, for a large number of points in the plane and then returns the colored plane according to these probabilities.</p>
+								<pre><code class="language-r">
+segmentation = function(w1, b1, w2, b2){
+
+# Setting up the grid
+x1grid &lt;- seq(min(dataclassif$x1)-.5,max(dataclassif$x1)+.5,by=.02)
+x2grid &lt;- seq(min(dataclassif$x2)-.5,max(dataclassif$x2)+.5,by=.02)
+xgrid &lt;- expand.grid(x1grid,x2grid)
+
+# Computation of y_pred for every grid point
+ygrid &lt;- prediction(xgrid,w1,b1,w2,b2,g)
+
+datapred &lt;- data.frame(x1=xgrid[,1],x2=xgrid[,2],y=ygrid)
+
+# Plane segmentation graphic
+predviz &lt;- ggplot() + geom_point(datapred,mapping=aes(x=x1, y=x2,color=y)) +
+			geom_point(dataclassif,mapping=aes(x=x1,y=x2,shape=factor(y))) +
+				labs(shape=&quot;y&quot;,colour=TeX(&quot;\\widehat{y}&quot;))
+
+return(predviz)
+}
+								</code></pre>
+								<p>The parameters of the previously created <em>NNet_model</em> are used to plot a first plane segmentation.</p>
+								<pre><code class="language-r">
+segmentation(NNet_model$w1, NNet_model$b1, NNet_model$w2, NNet_model$b2)
+								</code></pre>
+								<p><img src="images/unnamed-chunk-10-1.png" width="672" /></p>
+								</div>
+								<div id="experimentations" class="section level1">
+								<h1>Experimentations</h1>
+								<div id="model-training-based-on-different-initialisations" class="section level2">
+								<h2>Model training based on different initialisations</h2>
+								<p>The network will be trained repeatedly for different initialisation settings, including different weights, different values of <em>d</em>, and different activation functions <em>g</em> (<em>tanh</em> and <em>ReLU</em>). Then, the error function values obtained from the different initialisation settings are compared. 
+								In addition, the resulting plane segmentations for these different initialisation settings will be displayed. These graphs will be displayed in the same order as the associated error function values from the displayed table.
+								The influence of the number of iterations will be observed in the next section.</p>
+								<p>We start by choosing small weights in <span class="math inline">\([-0.1 ; 0.1]\)</span> and <span class="math inline">\(d \in \{2,5,10,50\}\)</span> and <span class="math inline">\(g \in \{tanh, ReLU\}\)</span>.</p>
+								<pre><code class="language-r">
+set.seed(1)
+# Values for d
+d_values = c(2,5,10,50)
+
+# Intervall for initial weights --&gt; [-0.1 ; 0.1]
+k=0.1
+
+loss_results_1 = matrix(NA, nrow=2, ncol=length(d_values), dimnames=list(c(&quot;tanh&quot;,&quot;ReLU&quot;)))
+
+plots_1=list() ; i=1
+for(g in c(&quot;tanh&quot;,&quot;ReLU&quot;)){
+for (d in d_values){
+	NNet_model = NNet(X=X, y=y, rate=0.01, niter=10000, d=d, g, k)
+	loss_results_1[which(c(&quot;tanh&quot;,&quot;ReLU&quot;)==g), which(d_values==d)] = loss(NNet_model$y,y)
+	plots_1[[i]]=segmentation(NNet_model$w1, NNet_model$b1, NNet_model$w2, NNet_model$b2) +
+	theme_void() + theme(legend.position = &quot;none&quot;) ; i = i+1
+}
+}
+								</code></pre>
+								<p><strong>Loss function values</strong></p>
+								<pre><code class="language-r">
+# Table with loss results
+kable(loss_results_1, col.names=c(&quot;d=2&quot;,&quot;d=5&quot;,&quot;d=10&quot;,&quot;d=50&quot;))
+								</code></pre>
+								<table>
+								<thead>
+								<tr class="header">
+								<th align="left"></th>
+								<th align="right">d=2</th>
+								<th align="right">d=5</th>
+								<th align="right">d=10</th>
+								<th align="right">d=50</th>
+								</tr>
+								</thead>
+								<tbody>
+								<tr class="odd">
+								<td align="left">tanh</td>
+								<td align="right">37.28769</td>
+								<td align="right">0.0387096</td>
+								<td align="right">0.0395267</td>
+								<td align="right">0.0524006</td>
+								</tr>
+								<tr class="even">
+								<td align="left">ReLU</td>
+								<td align="right">48.73767</td>
+								<td align="right">48.7376746</td>
+								<td align="right">39.3000640</td>
+								<td align="right">0.0266989</td>
+								</tr>
+								</tbody>
+								</table>
+								<p><strong>Plane segmentations</strong></p>
+								<pre><code class="language-r">
+# Plane segmentations
+grid.arrange(grobs=as.list(plots_1), ncol=4)
+								</code></pre>
+								<p><img src="images/unnamed-chunk-13-1.png" width="672" /></p>
+								<p>For <span class="math inline">\(g=tanh\)</span> and <span class="math inline">\(g=ReLU\)</span> with <span class="math inline">\(d=2\)</span> and <span class="math inline">\(d \in \{2;5;10\}\)</span> respectively the neural network provides results that are not very satisfactory. For other initialisations, however, the loss of the network is very low. Graphically, one can also observe the different plane segmentations for the different initialisations of the network. For networks with large loss function values, the plane segmentation seems to be rather linear, which is not very consistent with the data. We would now like to determine whether a different initialisation setting of the weights affects these results. 
+								
+								We repeat this procedure, but this time we choose larger weights, more precisely in <span class="math inline">\([-2;2]\)</span>.</p>
+								<pre><code class="language-r">
+set.seed(2)
+# Values for d
+d_values = c(2,5,10,50)
+
+# Intervall for initial weights --&gt; [-2 ; 2]
+k=2
+
+loss_results_2 = matrix(NA, nrow=2, ncol=length(d_values), dimnames=list(c(&quot;tanh&quot;,&quot;ReLU&quot;)))
+
+plots_2=list() ; i=1
+for(g in c(&quot;tanh&quot;,&quot;ReLU&quot;)){
+for (d in d_values){
+	NNet_model = NNet(X=X, y=y, rate=0.01, niter=10000, d=d, g, k)
+	loss_results_2[which(c(&quot;tanh&quot;,&quot;ReLU&quot;)==g), which(d_values==d)] = loss(NNet_model$y,y)
+	plots_2[[i]]=segmentation(NNet_model$w1, NNet_model$b1, NNet_model$w2, NNet_model$b2) +
+	theme_void() + theme(legend.position = &quot;none&quot;) ; i = i+1
+}
+}
+								</code></pre>
+								<p><strong>Loss function values</strong></p>
+								<pre><code class="language-r">
+# Loss function values
+kable(loss_results_2, col.names=c(&quot;d=2&quot;,&quot;d=5&quot;,&quot;d=10&quot;,&quot;d=50&quot;))
+								</code></pre>
+								<table>
+								<thead>
+								<tr class="header">
+								<th align="left"></th>
+								<th align="right">d=2</th>
+								<th align="right">d=5</th>
+								<th align="right">d=10</th>
+								<th align="right">d=50</th>
+								</tr>
+								</thead>
+								<tbody>
+								<tr class="odd">
+								<td align="left">tanh</td>
+								<td align="right">37.27624</td>
+								<td align="right">0.0366755</td>
+								<td align="right">0.0332603</td>
+								<td align="right">0.0237575</td>
+								</tr>
+								<tr class="even">
+								<td align="left">ReLU</td>
+								<td align="right">54.89825</td>
+								<td align="right">39.2993755</td>
+								<td align="right">34.2858837</td>
+								<td align="right">0.0184794</td>
+								</tr>
+								</tbody>
+								</table>
+								<p><strong>Plane segmentations</strong></p>
+								<pre><code class="language-r">
+# Plane segmentations
+grid.arrange(grobs=as.list(plots_2), ncol=4)
+								</code></pre>
+								<p><img src="images/unnamed-chunk-16-1.png" width="672" /></p>
+								<p>We notice that the results are very similar to the results of the first simulation, but still improved. We can therefore see that the initialization of the weights has an influence on the result. On the other hand, once again the network is not able to provide optimal results for <span class="math inline">\(d=2\)</span> and <span class="math inline">\(g=tanh\)</span> and for <span class="math inline">\(d \in \{2;5\}\)</span> with <span class="math inline">\(g=ReLU\)</span>. But this time for <span class="math inline">\(g=ReLU\)</span> and <span class="math inline">\(d=10\)</span>, the network loss function is able to approach 0, which was not the case before. One could assume that this could be due to the non-convexity of the cross entropy loss function. A bad initialisation of the weights then prevents the gradient descent from converging to the global optimum. Only a local optimum is then found, which could explain the poor results for some of the initialisation settings tested.</p>
+								</div>
+								<div id="intermediate-display-of-the-loss-function-value" class="section level2">
+								<h2>Intermediate display of the loss function value</h2>
+								<p>To be able to display the value of the error function every 100 iterations just add the line <em>if (iter%%100 == 0){…}</em> in the network training algorithm. This line allows to detect if for the <em>n</em>-th iteration <em>n</em> is a multiple of 100. 
+								The following code is the previously modified code such that this new <em>NNet_intermed_losses</em> function additionally returns the vector containing the loss function value every 100 iterations.</p>
+								<pre><code class="language-r">
+NNet_intermed_losses = function(X, y, rate, niter, d, g, k){
+
+# Initialisation of weights
+w1 = matrix(runif(n=2*d,-k,k),d,2)
+b1 = matrix(runif(n=d,-k,k),d,1)
+w2 = matrix(runif(n=d,-k,k),1,d)
+b2 = runif(n=1,-k,k)
+
+loss_vector=c()  # intermediate loss function values
+
+for(iter in 1:niter){
+	
+	y_pred = prediction(X,w1,b1,w2,b2,g)
+	
+	Z1 &lt;- w1 %*% t(X) + b1%*% matrix(1,1,dim(X)[1])
+	if (g==&quot;tanh&quot;) {A1 &lt;- tanh(Z1)}
+	if (g==&quot;ReLU&quot;) {A1 &lt;- ReLU(Z1)}
+	Z2 &lt;- w2 %*% A1 + b2 * matrix(1,1,dim(X)[1])
+	
+	# Computation of gradients
+	grad_y_pred = (y_pred - y)/(y_pred*(1-y_pred))
+	grad_Z2 = as.vector(sigmoid(Z2)*(1-sigmoid(Z2))) * grad_y_pred
+	grad_w2 = grad_Z2 %*% t(A1)
+	grad_b2 = sum(grad_Z2)
+	grad_A1 = t(w2) %*% grad_Z2
+	if(g==&quot;tanh&quot;){
+	grad_Z1 = grad_A1 * (1-A1^2)}
+	if(g==&quot;ReLU&quot;){
+	grad_Z1 = grad_A1 * (Z1&gt;0)}
+	grad_w1 = grad_Z1 %*% X
+	grad_b1 = rowSums(grad_Z1)
+	
+	# Updating the parameters
+	w2 =w2 - rate*grad_w2
+	b2 =b2 - rate*grad_b2
+	w1 =w1 - rate*grad_w1
+	b1 =b1 - rate*grad_b1
+	
+	if (iter%%100 == 0){loss_vector=c(loss_vector, loss(y_pred,y))}
+}
+return(list(y=y_pred,w1=w1,b1=b1,w2=w2,b2=b2,loss_vector=loss_vector))
+}
+								</code></pre>
+								<pre><code class="language-r">
+set.seed(4)
+# Number of iterations and values fo d
+d_values = c(2,5,10,50)
+niter=1000
+
+data = data.frame(matrix(NA, nrow = floor(niter/100), ncol = 0))
+
+# Model training for g=tanh and different values of d
+g = &quot;tanh&quot;
+for (d in d_values){
+NNet_model = NNet_intermed_losses(X=X, y=y, rate=0.01, niter, d, g, k=1)
+data = cbind(data,NNet_model$loss_vector)
+}
+
+# Model training for g=ReLU and different values of d
+g = &quot;ReLU&quot;
+for (d in d_values){
+NNet_model = NNet_intermed_losses(X=X, y=y, rate=0.01, niter, d, g, k=1)
+data = cbind(data,NNet_model$loss_vector)
+}
+
+# Graphic of loss function value training history
+par(xpd = T, mar = par()$mar + c(0,0,0,7))
+plot(-10,-10,xlim=c(0,niter),ylim=c(min(data),max(data)),
+	xlab = &quot;Itérations&quot;, ylab= &quot;Erreur&quot;)
+lines(100*(1:dim(data)[1]), data[,1], col=&quot;green&quot;)
+lines(100*(1:dim(data)[1]), data[,2], col=&quot;red&quot;)
+lines(100*(1:dim(data)[1]), data[,3], col=&quot;blue&quot;)
+lines(100*(1:dim(data)[1]), data[,4], col=&quot;black&quot;)
+lines(100*(1:dim(data)[1]), data[,5], col=&quot;green&quot;,lty=2)
+lines(100*(1:dim(data)[1]), data[,6], col=&quot;red&quot;,lty=2)
+lines(100*(1:dim(data)[1]), data[,7], col=&quot;blue&quot;,lty=2)
+lines(100*(1:dim(data)[1]), data[,8], col=&quot;black&quot;,lty=2)
+legend(&quot;topright&quot;, inset=c(-0.2,0), legend=d_values, col=c(&quot;green&quot;,&quot;red&quot;,&quot;blue&quot;,&quot;black&quot;),pch=20, title=&quot;d&quot;)
+legend(&quot;topright&quot;, inset=c(-0.3,0.5), legend=c(&quot;tanh&quot;,&quot;ReLU&quot;), lty=c(1,2))
+								</code></pre>
+								<p><img src="images/unnamed-chunk-18-1.png" width="672" /></p>
+								<pre><code class="language-r">
+par(mar=c(5, 4, 4, 2) + 0.1)
+								</code></pre>
+								<p>It is clear, as expected, that in general, performance is better if <em>d</em> is large. On the other hand, it is difficult to determine whether to prefer the <em>tanh</em> or <em>ReLU</em> function as a choice for the <em>g</em> activation function, as it strongly depends on the value of <em>d</em>. While the <em>ReLU</em> function gives better results for large values of <em>d</em> (<span class="math inline">\(d=50\)</span>), it is strongly advised to prefer <span class="math inline">\(g=tanh\)</span> if <em>d</em> is small (<span class="math inline">\(\leq 5\)</span>).
+								However, if <span class="math inline">\(d=2\)</span> the network loss function value does not approach 0 for both activation functions.</p>
+								</div>
+								</div>
+								<div id="conclusion" class="section level1">
+								<h1>Conclusion</h1>
+								<p>This article allows us to see that the construction of such a neural network in itself is not as complicated as one might think. Even if this example of a neural network is very simple, the principle will remain the same for networks with more hidden layers, with more neurons or with higher dimension input data or multi-class predictions. 
+								In my opinion, the complexity lies rather in the optimization of the network, i.e. fnding the best combination of hyperparameters. Already for a network as simple as this one, one would have the choice between several activation functions for both the hidden layer and the output layer, different values of <span class="math inline">\(d\)</span> and different values of the initial weights. The number of possible combinations of these parameters already seems almost infinite. In this example we have already managed to find good initialisations settings for large values of <span class="math inline">\(d\)</span>. However, if we wanted to optimize the model, for instance, for <span class="math inline">\(d=2\)</span>, we would have to continue initialising the network for all kinds of different initial weights.</p>
+								</div>
+					</div>
+				</div>
+
+
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+			<!-- Include the Prism JavaScript file -->
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+			<!-- Include the Prism R language definition file -->
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-r.min.js"></script>
+
+
+	</body>
+</html>
