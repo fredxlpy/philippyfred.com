@@ -3315,3 +3315,18 @@ input, select, textarea {
 			}
 
 	}
+
+.hover-image {
+	display: none;
+	position: absolute;
+	width: 200px; /* Adjust as necessary */
+	height: auto;
+	border: 1px solid #ccc;
+	background: #fff;
+	z-index: 100;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+li:hover .hover-image {
+	display: block;
+}
